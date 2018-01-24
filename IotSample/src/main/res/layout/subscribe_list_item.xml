@@ -1,0 +1,51 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="fill_parent"
+                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:padding="6dip">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="26dip"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true">
+        <TextView
+            android:id="@+id/tv_qos"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:ellipsize="marquee"
+            android:singleLine="true"
+            android:text="Qos"
+            android:textSize="12sp"/>
+        <TextView
+            android:id="@+id/tv_state"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text = "connected: false"
+            android:textSize="12sp"
+            android:layout_marginLeft="20dp"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_topic"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignWithParentIfMissing="true"
+        android:gravity="center_vertical"
+        android:text="Topic"
+        android:textSize="16sp"/>
+
+    <ImageView
+        android:id="@+id/topic_delete_image"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_alignEnd="@+id/tv_topic"
+        android:layout_alignParentRight="true"
+        android:layout_alignRight="@+id/tv_topic"
+        android:layout_marginRight="6dip"
+        android:src="@drawable/ic_delete"
+        tools:ignore="ContentDescription"/>
+
+</RelativeLayout>
