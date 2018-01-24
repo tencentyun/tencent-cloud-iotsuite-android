@@ -1,18 +1,18 @@
 
 
-#### 编译运行Demo
+### 编译运行Demo
 
-##### 下载SDK
+#### 下载SDK
 
 腾讯云iotsuite Android版SDK下载：
 
     git clone https://github.com/tencentyun/tencent-cloud-iotsuite-android
 
-##### 使用Android Studio打开
+#### 使用Android Studio打开
 
 使用 Android Studio 打开工程 tencent-cloud-iotsuite-android。
 
-##### 配置参数
+#### 配置参数
 
 腾讯云iotsuite有两种连接模式：mqtt直连模式和token模式，一个设备只支持其中一种。
 
@@ -38,15 +38,15 @@ Demo中的参数配置示例在ConnectionFragment.java中：
     private String mTokenDeviceName = "test_android_2";
     private String mTokenDeviceSecret = "4a3a3b49c5103f8d4cfea154169f6b25";
 ```
-##### 运行Demo
+#### 运行Demo
 
 在ConnectionFragment中填好配置参数后，编译运行Demo。选择连接模式并连接成功后，就可以发布和订阅topic。
 
-#### SDK说明
+### SDK说明
 
 腾讯云iotsuite Android SDK提供mqtt connect、subscribe、unsubscribe、publish 能力，另外提供失败重连的参数配置，相应的调用示例可以参见Demo中的Connection.java。
 
-##### 自动重连逻辑
+#### 自动重连逻辑
 
 SDK可配置minRetryTime、maxRetryTime、maxRetryTimes。
 
