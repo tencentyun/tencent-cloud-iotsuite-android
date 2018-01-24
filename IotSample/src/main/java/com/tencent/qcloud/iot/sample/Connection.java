@@ -64,38 +64,61 @@ public class Connection implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
     }
 
+    /**
+     * mqtt直连模式
+     * @param mqttHost
+     * @param productKey
+     * @param productId
+     * @param deviceName
+     * @param deviceSecret
+     * @param userName
+     * @param password
+     */
     public void connectDirectMode(String mqttHost, String productKey, String productId, String deviceName, String deviceSecret, String userName, String password) {
         if (mQCloudIotMqttClient != null) {
             mQCloudIotMqttClient.disconnect();
         }
+        //mqtt参数配置
         mQCloudMqttConfig = new QCloudMqttConfig(mqttHost, productKey, deviceName, deviceSecret)
                 .setProductId(productId)
                 .setMqttUserName(userName)
                 .setMqttPassword(password)
                 .setConnectionMode(QCloudMqttConnectionMode.MODE_DIRECT)
+                .setAutoReconnect(true)
                 .setMinRetryTimeMs(1000)
-                .setMaxRetryTimeMs(4000)
-                .setMaxRetryTimes(3);
+                .setMaxRetryTimeMs(20000)
+                .setMaxRetryTimes(10);
         connect(mQCloudMqttConfig);
     }
 
+    /**
+     * token连接模式
+     * @param mqttHost
+     * @param productKey
+     * @param productId
+     * @param deviceName
+     * @param deviceSecret
+     */
     public void connectTokenMode(String mqttHost, String productKey, String productId, String deviceName, String deviceSecret) {
         if (mQCloudIotMqttClient != null) {
             mQCloudIotMqttClient.disconnect();
         }
+        //mqtt参数配置
         mQCloudMqttConfig = new QCloudMqttConfig(mqttHost, productKey, deviceName, deviceSecret)
                 .setProductId(productId)
                 .setConnectionMode(QCloudMqttConnectionMode.MODE_TOKEN)
+                .setAutoReconnect(true)
                 .setMinRetryTimeMs(1000)
-                .setMaxRetryTimeMs(4000)
-                .setMaxRetryTimes(3);
+                .setMaxRetryTimeMs(20000)
+                .setMaxRetryTimes(10);
         connect(mQCloudMqttConfig);
     }
 
     private void connect(QCloudMqttConfig config) {
         mQCloudIotMqttClient = new QCloudIotMqttClient(config);
+        //设置监听来自已订阅topic的消息
         mQCloudIotMqttClient.setMqttMessageListener(mMqttMessageListener);
-
+        //建立mqtt连接并监听连接结果
         mQCloudIotMqttClient.connect(new IMqttConnectStateCallback() {
             @Override
             public void onStateChanged(MqttConnectState state) {
@@ -124,7 +147,9 @@ public class Connection implements Parcelable {
     }
 
     public void publish(String topic, String msg) {
+        //根据规则拼接得到topic
         final String fullTopic = mQCloudMqttConfig.getProductId() + "/" + mQCloudMqttConfig.getDeviceName() + "/" + topic;
+        //封装publish请求
         MqttPublishRequest request = new MqttPublishRequest()
                 .setTopic(fullTopic)
                 .setQos(QCloudIotMqttQos.QOS0)
@@ -144,6 +169,7 @@ public class Connection implements Parcelable {
     }
 
     public void subscribe(final String topic) {
+        //根据规则拼接得到topic
         final String fullTopic = mQCloudMqttConfig.getProductId() + "/" + mQCloudMqttConfig.getDeviceName() + "/" + topic;
         if (!mSubscribesMap.containsKey(fullTopic)) {
             Subscribe newSubscribe = new Subscribe()
@@ -161,6 +187,7 @@ public class Connection implements Parcelable {
             return;
         }
 
+        //封装subscribe请求
         MqttSubscribeRequest request = new MqttSubscribeRequest()
                 .setTopic(fullTopic)
                 .setQos(subscribe.getQos())
