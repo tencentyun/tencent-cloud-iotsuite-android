@@ -32,6 +32,7 @@ import com.tencent.qcloud.iot.sample.R;
 
 public class ConnectionFragment extends Fragment {
     private static final String TAG = "ConnectionFragment";
+    private View mRootView;
     private Switch mSwitchConnection;
     private TextView mTVState;
     private Button mBtnEditInfo;
@@ -82,73 +83,76 @@ public class ConnectionFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_connection, container, false);
-        mTabHost = (FragmentTabHost) rootView.findViewById(android.R.id.tabhost);
-        mTabHost.setup(getActivity(), getChildFragmentManager(), android.R.id.tabcontent);
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(Constants.CONNECTION_KEY, mConnection);
-        mTabHost.addTab(mTabHost.newTabSpec("Publish").setIndicator("Publish"), PublishFragment.class, bundle);
-        mTabHost.addTab(mTabHost.newTabSpec("Subscribe").setIndicator("Subscribe"), SubscribeFragment.class, bundle);
+        if (mRootView == null) {
+            View rootView = inflater.inflate(R.layout.fragment_connection, container, false);
+            mTabHost = (FragmentTabHost) rootView.findViewById(android.R.id.tabhost);
+            mTabHost.setup(getActivity(), getChildFragmentManager(), android.R.id.tabcontent);
+            Bundle bundle = new Bundle();
+            bundle.putParcelable(Constants.CONNECTION_KEY, mConnection);
+            mTabHost.addTab(mTabHost.newTabSpec("Publish").setIndicator("Publish"), PublishFragment.class, bundle);
+            mTabHost.addTab(mTabHost.newTabSpec("Subscribe").setIndicator("Subscribe"), SubscribeFragment.class, bundle);
 
-        mTVState = (TextView) rootView.findViewById(R.id.tv_state);
-        mBtnEditInfo = (Button) rootView.findViewById(R.id.btn_edit_info);
-        mSwitchConnection = (Switch) rootView.findViewById(R.id.switch_connection);
+            mTVState = (TextView) rootView.findViewById(R.id.tv_state);
+            mBtnEditInfo = (Button) rootView.findViewById(R.id.btn_edit_info);
+            mSwitchConnection = (Switch) rootView.findViewById(R.id.switch_connection);
 
-        mBtnEditInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                updateEditInfoView();
-                mEditInfoDialog.show();
-            }
-        });
-        mSwitchConnection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    if (mConnectionMode == QCloudMqttConnectionMode.MODE_DIRECT) {
-                        mConnection.connectDirectMode(mDirectMqttHost, mDirectProductKey, mDirectProductId, mDirectDeviceName, mDirectDeviceSecret, mDirectUserName,
-                                mDirectPassword);
-                    } else {
-                        mConnection.connectTokenMode(mTokenMqttHost, mTokenProductKey, mTokenProductId, mTokenDeviceName, mTokenDeviceSecret);
-                    }
-                } else {
-                    mConnection.disconnect();
-                    mTVState.setText("Closed");
+            mBtnEditInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    updateEditInfoView();
+                    mEditInfoDialog.show();
                 }
-            }
-        });
-        mConnection.setConnectionStateListener(new Connection.IConnectionStateListener() {
-            @Override
-            public void onConnecting() {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mTVState.setText("Connecting");
+            });
+            mSwitchConnection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        if (mConnectionMode == QCloudMqttConnectionMode.MODE_DIRECT) {
+                            mConnection.connectDirectMode(mDirectMqttHost, mDirectProductKey, mDirectProductId, mDirectDeviceName, mDirectDeviceSecret, mDirectUserName,
+                                    mDirectPassword);
+                        } else {
+                            mConnection.connectTokenMode(mTokenMqttHost, mTokenProductKey, mTokenProductId, mTokenDeviceName, mTokenDeviceSecret);
+                        }
+                    } else {
+                        mConnection.disconnect();
+                        mTVState.setText("Closed");
                     }
-                });
-            }
+                }
+            });
+            mConnection.setConnectionStateListener(new Connection.IConnectionStateListener() {
+                @Override
+                public void onConnecting() {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mTVState.setText("Connecting");
+                        }
+                    });
+                }
 
-            @Override
-            public void onSuccess() {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mTVState.setText("Connected");
-                    }
-                });
-            }
+                @Override
+                public void onSuccess() {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mTVState.setText("Connected");
+                        }
+                    });
+                }
 
-            @Override
-            public void onFailure() {
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mSwitchConnection.setChecked(false);
-                    }
-                });
-            }
-        });
-        return rootView;
+                @Override
+                public void onFailure() {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mSwitchConnection.setChecked(false);
+                        }
+                    });
+                }
+            });
+            mRootView = rootView;
+        }
+        return mRootView;
     }
 
     private void initEditInfoView() {

@@ -40,13 +40,60 @@ Demo中的参数配置示例在ConnectionFragment.java中：
 ```
 #### 运行Demo
 
-在ConnectionFragment中填好配置参数后，编译运行Demo。选择连接模式并连接成功后，就可以发布和订阅topic。
+在ConnectionFragment中填好配置参数后，编译运行Demo。选择连接模式并连接成功后，就可以订阅和发布topic。
 
 ### SDK说明
 
-腾讯云iotsuite Android SDK提供mqtt connect、subscribe、unsubscribe、publish 能力，另外提供失败重连的参数配置，相应的调用示例可以参见Demo中的Connection.java。
+腾讯云iotsuite Android SDK提供mqtt connect、disconnec、subscribe、unsubscribe、publish 能力，另外提供失败重连的参数配置，相应的调用示例可以参见Demo中的Connection.java。
 
-#### 自动重连逻辑
+#### mqtt部分
+
+- 建立mqtt连接      
+
+
+    void connect(final IMqttConnectStateCallback connectStateCallback)
+    
+IMqttConnectStateCallback用于监听连接状态变化。
+
+- 断开mqtt连接
+
+
+    void disconnect()
+    
+- 订阅topic
+
+
+    void subscribe(final MqttSubscribeRequest request)
+
+MqttSubscribeRequest中可设置回调，监听请求结果。
+
+- 取消订阅topic
+
+
+    void unSubscribe(final MqttUnSubscribeRequest request)
+
+MqttUnSubscribeRequest中可设置回调，监听请求结果。
+
+- 向topic发布消息
+
+
+    void publish(final MqttPublishRequest request)
+    
+MqttPublishRequest中可设置回调，监听请求结果。
+
+- 监听已订阅topic发来的消息
+
+
+    QCloudIotMqttClient setMqttMessageListener(IMqttMessageListener listener)
+
+#### 其他
+
+- 设置log等级
+
+
+    QLog.setLogLevel(QLog.QLOG_LEVEL_DEBUG);
+
+- 自动重连逻辑
 
 SDK可配置minRetryTime、maxRetryTime、maxRetryTimes。
 

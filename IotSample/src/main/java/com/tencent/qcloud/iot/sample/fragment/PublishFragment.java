@@ -22,6 +22,7 @@ import com.tencent.qcloud.iot.sample.R;
 
 public class PublishFragment extends Fragment {
 
+    private View mRootView;
     private Connection mConnection;
 
     @Override
@@ -34,24 +35,26 @@ public class PublishFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.fragment_publish, container, false);
-        final EditText topicText = (EditText) rootView.findViewById(R.id.topic);
-        final EditText messageText = (EditText) rootView.findViewById(R.id.message);
-        Button btnPublish = (Button) rootView.findViewById(R.id.publish_button);
-        btnPublish.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity activity = (MainActivity) getActivity();
-                String topic = topicText.getText().toString();
-                String message = messageText.getText().toString();
-                if (TextUtils.isEmpty(topic) || TextUtils.isEmpty(message)) {
-                    activity.showToast("topic and message can not be empty");
-                    return;
+        if (mRootView == null) {
+            final View rootView = inflater.inflate(R.layout.fragment_publish, container, false);
+            final EditText topicText = (EditText) rootView.findViewById(R.id.topic);
+            final EditText messageText = (EditText) rootView.findViewById(R.id.message);
+            Button btnPublish = (Button) rootView.findViewById(R.id.publish_button);
+            btnPublish.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    MainActivity activity = (MainActivity) getActivity();
+                    String topic = topicText.getText().toString();
+                    String message = messageText.getText().toString();
+                    if (TextUtils.isEmpty(topic) || TextUtils.isEmpty(message)) {
+                        activity.showToast("topic and message can not be empty");
+                        return;
+                    }
+                    mConnection.publish(topic, message);
                 }
-                mConnection.publish(topic, message);
-            }
-        });
-
-        return rootView;
+            });
+            mRootView = rootView;
+        }
+        return mRootView;
     }
 }

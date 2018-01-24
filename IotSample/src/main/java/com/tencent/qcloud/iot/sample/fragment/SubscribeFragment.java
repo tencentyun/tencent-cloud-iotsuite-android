@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +30,7 @@ import java.util.ArrayList;
 
 public class SubscribeFragment extends Fragment {
 
+    private View mRootView;
     private Connection mConnection;
     private ArrayList<Subscribe> mSubscribes;
 
@@ -44,40 +44,43 @@ public class SubscribeFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_subscribe, container, false);
-        Button btnSubscribe = (Button) rootView.findViewById(R.id.subscribe_button);
+        if (mRootView == null) {
+            View rootView = inflater.inflate(R.layout.fragment_subscribe, container, false);
+            Button btnSubscribe = (Button) rootView.findViewById(R.id.subscribe_button);
 
-        btnSubscribe.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showInputDialog();
-            }
-        });
+            btnSubscribe.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showInputDialog();
+                }
+            });
 
-        ListView subscribeListView = (ListView) rootView.findViewById(R.id.subscribe_list_view);
-        mSubscribes =  mConnection.getSubscribes();
-        final SubscrbeListItemAdapter adapter = new SubscrbeListItemAdapter(getActivity(),mSubscribes);
+            ListView subscribeListView = (ListView) rootView.findViewById(R.id.subscribe_list_view);
+            mSubscribes = mConnection.getSubscribes();
+            final SubscrbeListItemAdapter adapter = new SubscrbeListItemAdapter(getActivity(), mSubscribes);
 
-        adapter.addOnUnsubscribeListner(new SubscrbeListItemAdapter.OnUnsubscribeListner() {
-            @Override
-            public void onUnsubscribe(Subscribe subscribe) {
-                mConnection.unsubscribe(subscribe.getTopic());
-            }
-        });
-        mConnection.setSubscribeStateListener(new Connection.ISubscribeStateListener() {
-            @Override
-            public void onSubscribeStateChanged() {
-                mSubscribes.clear();
-                mSubscribes.addAll(mConnection.getSubscribes());
-                adapter.notifyDataSetChanged();
-            }
-        });
-        subscribeListView.setAdapter(adapter);
-        return rootView;
+            adapter.addOnUnsubscribeListner(new SubscrbeListItemAdapter.OnUnsubscribeListner() {
+                @Override
+                public void onUnsubscribe(Subscribe subscribe) {
+                    mConnection.unsubscribe(subscribe.getTopic());
+                }
+            });
+            mConnection.setSubscribeStateListener(new Connection.ISubscribeStateListener() {
+                @Override
+                public void onSubscribeStateChanged() {
+                    mSubscribes.clear();
+                    mSubscribes.addAll(mConnection.getSubscribes());
+                    adapter.notifyDataSetChanged();
+                }
+            });
+            subscribeListView.setAdapter(adapter);
+            mRootView = rootView;
+        }
+        return mRootView;
     }
 
-    private void showInputDialog(){
-        LayoutInflater layoutInflater =  (LayoutInflater) this.getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    private void showInputDialog() {
+        LayoutInflater layoutInflater = (LayoutInflater) this.getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         @SuppressLint("InflateParams") View promptView = layoutInflater.inflate(R.layout.dialog_subscribe, null);
         final EditText topicText = (EditText) promptView.findViewById(R.id.subscribe_topic_edit_text);
 
@@ -95,7 +98,7 @@ public class SubscribeFragment extends Fragment {
             }
         });
 
-        AlertDialog alert =  alertDialogBuilder.create();
+        AlertDialog alert = alertDialogBuilder.create();
         alert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         alert.show();
     }
