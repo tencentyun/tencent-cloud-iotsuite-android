@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
+import com.tencent.qcloud.iot.common.QLog;
 import com.tencent.qcloud.iot.mqtt.QCloudIotMqttClient;
 import com.tencent.qcloud.iot.mqtt.QCloudMqttConfig;
 import com.tencent.qcloud.iot.mqtt.QCloudMqttConfig.QCloudMqttConnectionMode;
@@ -38,6 +39,7 @@ public class Connection implements Parcelable {
 
     public Connection() {
         mSubscribesMap = new HashMap<>();
+        QLog.setLogLevel(QLog.QLOG_LEVEL_DEBUG);
     }
 
     protected Connection(Parcel in) {
@@ -141,12 +143,18 @@ public class Connection implements Parcelable {
     }
 
     public void disconnect() {
+        if (mQCloudIotMqttClient == null) {
+            return;
+        }
         mQCloudIotMqttClient.disconnect();
         mSubscribesMap.clear();
         onSubscribeStateChanged();
     }
 
     public void publish(String topic, String msg) {
+        if (mQCloudIotMqttClient == null || mQCloudMqttConfig == null) {
+            return;
+        }
         //根据规则拼接得到topic
         final String fullTopic = mQCloudMqttConfig.getProductId() + "/" + mQCloudMqttConfig.getDeviceName() + "/" + topic;
         //封装publish请求
@@ -169,6 +177,9 @@ public class Connection implements Parcelable {
     }
 
     public void subscribe(final String topic) {
+        if (mQCloudIotMqttClient == null || mQCloudMqttConfig == null) {
+            return;
+        }
         //根据规则拼接得到topic
         final String fullTopic = mQCloudMqttConfig.getProductId() + "/" + mQCloudMqttConfig.getDeviceName() + "/" + topic;
         if (!mSubscribesMap.containsKey(fullTopic)) {
@@ -213,6 +224,9 @@ public class Connection implements Parcelable {
     }
 
     public void unsubscribe(final String topic) {
+        if (mQCloudIotMqttClient == null) {
+            return;
+        }
         mSubscribesMap.remove(topic);
         MqttUnSubscribeRequest request = new MqttUnSubscribeRequest()
                 .setTopic(topic)

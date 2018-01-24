@@ -106,7 +106,8 @@ public class ConnectionFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     if (mConnectionMode == QCloudMqttConnectionMode.MODE_DIRECT) {
-                        mConnection.connectDirectMode(mDirectMqttHost, mDirectProductKey, mDirectProductId, mDirectDeviceName, mDirectDeviceSecret, mDirectUserName, mDirectPassword);
+                        mConnection.connectDirectMode(mDirectMqttHost, mDirectProductKey, mDirectProductId, mDirectDeviceName, mDirectDeviceSecret, mDirectUserName,
+                                mDirectPassword);
                     } else {
                         mConnection.connectTokenMode(mTokenMqttHost, mTokenProductKey, mTokenProductId, mTokenDeviceName, mTokenDeviceSecret);
                     }
