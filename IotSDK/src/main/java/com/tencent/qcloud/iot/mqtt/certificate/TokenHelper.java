@@ -102,7 +102,7 @@ public class TokenHelper {
         paramMap.put("clientId", clientId);
         paramMap.put("deviceName", mDeviceName);
         paramMap.put("expire", "60");
-        paramMap.put("nonce", String.valueOf((int) Math.random() * 100000000));
+        paramMap.put("nonce", String.valueOf((int) (Math.random() * 100000000)));
         paramMap.put("productId", mProductId);
         paramMap.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
         Set<String> keySet = paramMap.keySet();

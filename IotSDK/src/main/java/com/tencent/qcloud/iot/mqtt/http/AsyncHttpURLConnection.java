@@ -110,7 +110,7 @@ public class AsyncHttpURLConnection {
     }
 
     private static String drainStream(InputStream in) {
-        Scanner s = new Scanner(in).useDelimiter("\\A");
+        Scanner s = new Scanner(in, StringUtil.UTF8.name()).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
     }
 }
