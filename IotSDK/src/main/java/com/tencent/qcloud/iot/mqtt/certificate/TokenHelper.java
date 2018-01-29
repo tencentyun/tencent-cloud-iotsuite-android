@@ -18,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import javax.crypto.Mac;
@@ -102,7 +103,7 @@ public class TokenHelper {
         paramMap.put("clientId", clientId);
         paramMap.put("deviceName", mDeviceName);
         paramMap.put("expire", "60");
-        paramMap.put("nonce", String.valueOf((int) (Math.random() * 100000000)));
+        paramMap.put("nonce", String.valueOf(new Random().nextInt(10000000)));
         paramMap.put("productId", mProductId);
         paramMap.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
         Set<String> keySet = paramMap.keySet();

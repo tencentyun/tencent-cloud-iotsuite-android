@@ -1,5 +1,17 @@
 
 
+### 引入SDK
+
+#### 两种引入方式
+
+1、下载SDK，然后本地依赖
+
+    implementation project(path: ':IotSDK')
+
+2、直接依赖jcenter上的库
+
+    implementation 'com.tencent.qcloud:iot-android-sdk:1.0.2'
+
 ### 编译运行Demo
 
 #### 下载SDK
@@ -48,53 +60,46 @@ Demo中的参数配置示例在ConnectionFragment.java中：
 
 #### mqtt部分
 
-- 建立mqtt连接      
+- 建立mqtt连接
 
-
-    void connect(final IMqttConnectStateCallback connectStateCallback)
+        void connect(final IMqttConnectStateCallback connectStateCallback)
     
-IMqttConnectStateCallback用于监听连接状态变化。
+    IMqttConnectStateCallback用于监听连接状态变化。
 
 - 断开mqtt连接
 
-
-    void disconnect()
+        void disconnect()
     
 - 订阅topic
 
+        void subscribe(final MqttSubscribeRequest request)
 
-    void subscribe(final MqttSubscribeRequest request)
-
-MqttSubscribeRequest中可设置回调，监听请求结果。
+    MqttSubscribeRequest中可设置回调，监听请求结果。
 
 - 取消订阅topic
 
+        void unSubscribe(final MqttUnSubscribeRequest request)
 
-    void unSubscribe(final MqttUnSubscribeRequest request)
-
-MqttUnSubscribeRequest中可设置回调，监听请求结果。
+    MqttUnSubscribeRequest中可设置回调，监听请求结果。
 
 - 向topic发布消息
 
+        void publish(final MqttPublishRequest request)
 
-    void publish(final MqttPublishRequest request)
-    
-MqttPublishRequest中可设置回调，监听请求结果。
+    MqttPublishRequest中可设置回调，监听请求结果。
 
 - 监听已订阅topic发来的消息
 
-
-    QCloudIotMqttClient setMqttMessageListener(IMqttMessageListener listener)
+        QCloudIotMqttClient setMqttMessageListener(IMqttMessageListener listener)
 
 #### 其他
 
 - 设置log等级
 
-
-    QLog.setLogLevel(QLog.QLOG_LEVEL_DEBUG);
+        QLog.setLogLevel(QLog.QLOG_LEVEL_DEBUG);
 
 - 自动重连逻辑
 
-SDK可配置minRetryTime、maxRetryTime、maxRetryTimes。
+    SDK可配置minRetryTime、maxRetryTime、maxRetryTimes。
 
-两次重连之间的时间间隔retryInterval按2的幂次方增长，并且满足 minRetryTime<=retryInterval<=maxRetryTime，当重连次数达到maxRetryTimes后，停止重连。
+    两次重连之间的时间间隔retryInterval按2的幂次方增长，并且满足 minRetryTime<=retryInterval<=maxRetryTime，当重连次数达到maxRetryTimes后，停止重连。
