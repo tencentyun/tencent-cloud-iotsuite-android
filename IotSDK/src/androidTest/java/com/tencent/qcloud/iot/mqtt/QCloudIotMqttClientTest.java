@@ -31,14 +31,18 @@ public class QCloudIotMqttClientTest {
     private KeyStore mKeyStore;
 
     public QCloudIotMqttClientTest() throws IOException {
-        QCloudMqttConfig config = new QCloudMqttConfig("testProductKey", "testDeviceName", "testDeviceSecret")
+        QCloudMqttConfig config = new QCloudMqttConfig("mqtt-m2i58z3s.ap-guangzhou.mqtt.tencentcloudmq.com", "mqtt-m2i58z3s", "test_android_1", "48bf05179b6f1be3b38c89f27c804f11")
+                .setProductId("iot-6xzr8ap8")
+                .setConnectionMode(QCloudMqttConfig.QCloudMqttConnectionMode.MODE_DIRECT)
+                .setMqttUserName("AKIDNgssgTw1pW2NahKR4oRt9D6ofNuGgSKG")
+                .setMqttPassword("085Nmo6yhgR/TMjSPfFWP+TEVrggjVNFtAyvZUCxp0U=")
                 .setMinRetryTimeMs(MIN_RETRY_TIME_MS)
                 .setMaxRetryTimeMs(MAX_RETRY_TIME_MS)
                 .setMaxRetryTimes(2);
         mQCloudIotMqttClient = new QCloudIotMqttClient(config);
         mCountDownLatch = new CountDownLatch(1);
         CertificateProviderTest certificateProvider = new CertificateProviderTest();
-        mKeyStore = certificateProvider.getKeyStore();
+        //mKeyStore = certificateProvider.getKeyStore();
     }
 
     @Test
@@ -54,7 +58,7 @@ public class QCloudIotMqttClientTest {
     @Test
     public void testConnect() throws IOException, InterruptedException {
 
-        mQCloudIotMqttClient.connect(mKeyStore, new IMqttConnectStateCallback() {
+        mQCloudIotMqttClient.connect(new IMqttConnectStateCallback() {
             @Override
             public void onStateChanged(MqttConnectState state) {
                 Log.d(TAG, "onStateChanged: " + state);
@@ -67,26 +71,11 @@ public class QCloudIotMqttClientTest {
         Assert.assertTrue(success);
 
         try {
-            mQCloudIotMqttClient.connectInternal(mKeyStore, null);
+            mQCloudIotMqttClient.connectInternal(null);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalStateException);
         }
-
-        mCountDownLatch = new CountDownLatch(1);
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                mCountDownLatch.countDown();
-                try {
-                    mQCloudIotMqttClient.connectInternal(null, null);
-                    Assert.fail();
-                } catch (Exception e) {
-                    Assert.assertTrue(e instanceof IllegalArgumentException);
-                }
-            }
-        });
-        mCountDownLatch.await();
     }
 
     @Test
@@ -202,7 +191,7 @@ public class QCloudIotMqttClientTest {
             @Override
             public void run() {
                 mCountDownLatch.countDown();
-                mQCloudIotMqttClient.connectInternal(mKeyStore, null);
+                mQCloudIotMqttClient.connectInternal(null);
             }
         });
         try {

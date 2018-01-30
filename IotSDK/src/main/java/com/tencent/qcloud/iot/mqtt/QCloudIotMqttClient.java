@@ -38,7 +38,7 @@ import javax.net.ssl.SSLSocketFactory;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudIotMqttClient extends AbstractIotMqttClient {
+class QCloudIotMqttClient extends AbstractIotMqttClient {
     private static final String TAG = QCloudIotMqttClient.class.getSimpleName();
 
     private QCloudMqttConfig mQCloudMqttConfig;

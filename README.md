@@ -10,7 +10,7 @@
 
 2、直接依赖jcenter上的库
 
-    implementation 'com.tencent.qcloud:iot-android-sdk:1.0.2'
+    implementation 'com.tencent.qcloud:iot-android-sdk:1.0.3'
 
 ### 编译运行Demo
 
@@ -90,7 +90,7 @@ Demo中的参数配置示例在ConnectionFragment.java中：
 
 - 监听已订阅topic发来的消息
 
-        QCloudIotMqttClient setMqttMessageListener(IMqttMessageListener listener)
+        QCloudIotMqttService setMqttMessageListener(IMqttMessageListener listener)
 
 #### 其他
 
