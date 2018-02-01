@@ -91,6 +91,7 @@ public class ConnectionFragment extends Fragment {
             bundle.putParcelable(Constants.CONNECTION_KEY, mConnection);
             mTabHost.addTab(mTabHost.newTabSpec("Publish").setIndicator("Publish"), PublishFragment.class, bundle);
             mTabHost.addTab(mTabHost.newTabSpec("Subscribe").setIndicator("Subscribe"), SubscribeFragment.class, bundle);
+            mTabHost.addTab(mTabHost.newTabSpec("Shadow").setIndicator("Shadow"), ShadowFragment.class, bundle);
 
             mTVState = (TextView) rootView.findViewById(R.id.tv_state);
             mBtnEditInfo = (Button) rootView.findViewById(R.id.btn_edit_info);

@@ -19,7 +19,7 @@ public class QCloudConstants {
     /**
      * 请求token的url
      */
-    public static final String TOKEN_URL = "http://auth-device-iot.tencentcloudapi.com/device";
+    public static final String TOKEN_URL = "http://gz.auth-device-iot.tencentcloudapi.com/device";
 
     /**
      * 请求token成功的返回值标识

@@ -86,6 +86,8 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
         setConnectStateAndNotify(MqttConnectState.CONNECTING);
         mMqttClientId = mQCloudMqttConfig.getProductKey() + "@" + QCloudConstants.CLIENT_SUFFIX;
         mMqttConnectStateCallback = connectStateCallback;
+        mMqttRequestQueue.clear();
+        mReSubscribeQueue.clear();
 
         if (mQCloudMqttConfig.getConnectionMode() == QCloudMqttConfig.QCloudMqttConnectionMode.MODE_DIRECT) {//直连模式，直接mqtt连接.
             mqttConnect();
@@ -114,8 +116,6 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
     }
 
     private void mqttConnect() {
-        mMqttRequestQueue.clear();
-        mReSubscribeQueue.clear();
 
         String mqttBrokerURL = "tcp://" + mQCloudMqttConfig.getMqttHost() + ":" + QCloudConstants.MQTT_PORT;
         try {
@@ -263,7 +263,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
     private MqttCallback mMqttCallback = new MqttCallback() {
         @Override
         public void connectionLost(Throwable cause) {
-            QLog.d(TAG, "clientId = " + mMqttClientId + ", connectionLost");
+            QLog.d(TAG, "connectionLost, clientId = " + mMqttClientId);
             onConnectFailed(cause);
         }
 
@@ -273,7 +273,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
                 QLog.e(TAG, "messageArrived error, message or payload is null");
                 return;
             }
-            QLog.d(TAG, "clientId = " + mMqttClientId + ", messageArrived: " + message);
+            QLog.d(TAG,  "messageArrived: " + message + ", clientId = " + mMqttClientId + ", topic = " + topic);
             String msg = new String(message.getPayload(), StringUtil.UTF8);
             if (mMqttMessageListener != null) {
                 mMqttMessageListener.onMessageArrived(topic, msg);
@@ -282,7 +282,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
 
         @Override
         public void deliveryComplete(IMqttDeliveryToken token) {
-            QLog.d(TAG, "clientId = " + mMqttClientId + ", deliveryComplete: " + token);
+            //QLog.d(TAG, "clientId = " + mMqttClientId + ", deliveryComplete: " + token);
         }
     };
 
@@ -292,7 +292,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
     private IMqttActionListener mMqttConnectActionListener = new IMqttActionListener() {
         @Override
         public void onSuccess(IMqttToken asyncActionToken) {
-            QLog.d(TAG, "clientId = " + mMqttClientId + ", onSuccess: " + asyncActionToken.toString());
+            QLog.d(TAG, "connect successed, clientId = " + mMqttClientId);
             mReconnectHelper.reset();
             setConnectStateAndNotify(MqttConnectState.CONNECTED);
             reSubscribeFromQueue();
@@ -301,7 +301,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
 
         @Override
         public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-            QLog.d(TAG, "clientId = " + mMqttClientId + ", onFailure: " + asyncActionToken + ", exception: " + (exception != null ? exception : ""));
+            QLog.d(TAG, "connect failed, exception: " + (exception != null ? exception : "") + ", clientId = " + mMqttClientId);
             onConnectFailed(exception);
         }
     };

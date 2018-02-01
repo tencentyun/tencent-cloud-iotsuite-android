@@ -37,9 +37,10 @@ public class PublishFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         if (mRootView == null) {
             final View rootView = inflater.inflate(R.layout.fragment_publish, container, false);
-            final EditText topicText = (EditText) rootView.findViewById(R.id.topic);
-            final EditText messageText = (EditText) rootView.findViewById(R.id.message);
-            Button btnPublish = (Button) rootView.findViewById(R.id.publish_button);
+            final EditText topicText = (EditText) rootView.findViewById(R.id.et_topic);
+            final EditText messageText = (EditText) rootView.findViewById(R.id.et_message);
+            final Button btnPublish = (Button) rootView.findViewById(R.id.btn_publish);
+
             btnPublish.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

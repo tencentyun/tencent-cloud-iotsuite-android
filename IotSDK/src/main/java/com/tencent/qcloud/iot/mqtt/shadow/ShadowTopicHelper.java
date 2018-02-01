@@ -8,22 +8,22 @@ import android.text.TextUtils;
  */
 
 public class ShadowTopicHelper {
-    private String mProductKey;
+    private String mProductId;
     private String mDeviceName;
 
-    public ShadowTopicHelper(String productKey, String deviceName) {
-        if (TextUtils.isEmpty(productKey) || TextUtils.isEmpty(deviceName)) {
-            throw new IllegalArgumentException("productKey and deviceName cannot be empty");
+    public ShadowTopicHelper(String productId, String deviceName) {
+        if (TextUtils.isEmpty(productId) || TextUtils.isEmpty(deviceName)) {
+            throw new IllegalArgumentException("productId and deviceName cannot be empty");
         }
-        mProductKey = productKey;
+        mProductId = productId;
         mDeviceName = deviceName;
     }
 
     public String getGetTopic() {
-        return String.format("/shadow/get/%s/%s", mProductKey, mDeviceName);
+        return String.format("shadow/get/%s/%s", mProductId, mDeviceName);
     }
 
     public String getUpdateTopic() {
-        return String.format("/shadow/update/%s/%s", mProductKey, mDeviceName);
+        return String.format("shadow/update/%s/%s", mProductId, mDeviceName);
     }
 }

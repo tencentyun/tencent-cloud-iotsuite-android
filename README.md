@@ -1,4 +1,7 @@
 
+### 介绍
+
+IotSDK是腾讯云iotsuite的设备端SDK，IotSample是使用IotSDK的demo。
 
 ### 引入SDK
 
@@ -10,7 +13,7 @@
 
 2、直接依赖jcenter上的库
 
-    implementation 'com.tencent.qcloud:iot-android-sdk:1.0.3'
+    implementation 'com.tencent.qcloud:iot-android-sdk:1.1.0'
 
 ### 编译运行Demo
 
@@ -90,7 +93,25 @@ Demo中的参数配置示例在ConnectionFragment.java中：
 
 - 监听已订阅topic发来的消息
 
-        QCloudIotMqttService setMqttMessageListener(IMqttMessageListener listener)
+        void setMqttMessageListener(IMqttMessageListener listener)
+
+#### 影子操作
+
+- 获取影子
+
+        void getShadow()
+
+- 设备端更新影子
+
+        void reportShadow(JSONObject report)
+
+- 删除影子部分属性或全部属性
+
+        void deleteShadow(JSONObject delete)
+
+- 设置监听影子消息，必须在connect调用之后
+
+        void setShadowMessageListener(IShadowListener shadowListener)
 
 #### 其他
 

@@ -16,7 +16,10 @@ import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
+import com.tencent.qcloud.iot.mqtt.shadow.IShadowListener;
 import com.tencent.qcloud.iot.sample.model.Subscribe;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,8 +36,20 @@ public class Connection implements Parcelable {
     private QCloudIotMqttService mQCloudIotMqttService;
     private QCloudMqttConfig mQCloudMqttConfig;
     private Map<String, Subscribe> mSubscribesMap;
+
+    /**
+     * mSubscribeStateListener: 当订阅状态改变时，通知外部修改UI
+     */
     private ISubscribeStateListener mSubscribeStateListener;
+
+    /**
+     * mConnectionStateListener: 当connect状态改变时，通知外部修改UI
+     */
     private IConnectionStateListener mConnectionStateListener;
+
+    /**
+     * mMessageNotifyListener: 用于将想要对外展示的消息发出给Activity
+     */
     private IMessageNotifyListener mMessageNotifyListener;
 
     public Connection() {
@@ -120,8 +135,6 @@ public class Connection implements Parcelable {
 
     private void connect(QCloudMqttConfig config) {
         mQCloudIotMqttService = new QCloudIotMqttService(config);
-        //设置监听来自已订阅topic的消息
-        mQCloudIotMqttService.setMqttMessageListener(mMqttMessageListener);
         //建立mqtt连接并监听连接结果
         mQCloudIotMqttService.connect(new IMqttConnectStateCallback() {
             @Override
@@ -142,8 +155,16 @@ public class Connection implements Parcelable {
                 }
             }
         });
+        //设置监听来自已订阅topic的消息
+        mQCloudIotMqttService.setMqttMessageListener(mMqttMessageListener);
+        //TODO:创建影子成功后？
+        //设置监听影子消息，connect后调用
+        mQCloudIotMqttService.setShadowMessageListener(mShadowListener);
     }
 
+    /**
+     * 断开mqtt连接
+     */
     public void disconnect() {
         if (mQCloudIotMqttService == null) {
             return;
@@ -153,6 +174,12 @@ public class Connection implements Parcelable {
         onSubscribeStateChanged();
     }
 
+    /**
+     * 发布消息到topic
+     *
+     * @param topic
+     * @param msg
+     */
     public void publish(String topic, String msg) {
         if (mQCloudIotMqttService == null || mQCloudMqttConfig == null) {
             return;
@@ -178,6 +205,11 @@ public class Connection implements Parcelable {
         mQCloudIotMqttService.publish(request);
     }
 
+    /**
+     * 订阅topic
+     *
+     * @param topic
+     */
     public void subscribe(final String topic) {
         if (mQCloudIotMqttService == null || mQCloudMqttConfig == null) {
             return;
@@ -225,6 +257,11 @@ public class Connection implements Parcelable {
         mQCloudIotMqttService.subscribe(request);
     }
 
+    /**
+     * 取消订阅topic
+     *
+     * @param topic
+     */
     public void unsubscribe(final String topic) {
         if (mQCloudIotMqttService == null) {
             return;
@@ -302,4 +339,65 @@ public class Connection implements Parcelable {
     public interface IMessageNotifyListener {
         void onMessage(String msg);
     }
+
+    /**
+     * 获取影子。
+     * 异步操作，成功后触发 IShadowListener.onGetShadow
+     */
+    public void getShadow() {
+        if (mQCloudIotMqttService == null) {
+            return;
+        }
+        mQCloudIotMqttService.getShadow();
+    }
+
+    /**
+     * 设备端发出请求，汇报自身状态属性用于更新影子
+     *
+     * @param report
+     */
+    public void reportShadow(JSONObject report) {
+        if (mQCloudIotMqttService == null) {
+            return;
+        }
+        mQCloudIotMqttService.reportShadow(report);
+    }
+
+    /**
+     * 设备端发出请求，删除影子的某个属性或全部属性。
+     *
+     * @param delete null表示删除影子的所有属性，否则只删除delete json对象中值为null的属性
+     */
+    public void deleteShadow(JSONObject delete) {
+        if (mQCloudIotMqttService == null) {
+            return;
+        }
+        mQCloudIotMqttService.deleteShadow(delete);
+    }
+
+    /**
+     * 监听影子消息
+     */
+    private IShadowListener mShadowListener = new IShadowListener() {
+
+        @Override
+        public void onReplySuccess() {
+            notifyMessage("on shadow reply, success");
+        }
+
+        @Override
+        public void onReplyFail(int errorCode, String status) {
+            notifyMessage("on shadow reply, error, code = " + errorCode + ", status = " + status);
+        }
+
+        @Override
+        public void onGetShadow(JSONObject desired, JSONObject reported) {
+            notifyMessage("on get shadow, desired = " + desired + ", reported = " + reported);
+        }
+
+        @Override
+        public void onControl(JSONObject desired) {
+            notifyMessage("on control, desired = " + desired);
+        }
+    };
 }
