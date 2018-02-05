@@ -13,7 +13,7 @@ IotSDK是腾讯云iotsuite的设备端SDK，IotSample是使用IotSDK的demo。
 
 2、直接依赖jcenter上的库
 
-    implementation 'com.tencent.qcloud:iot-android-sdk:1.1.0'
+    implementation 'com.tencent.qcloud:iot-android-sdk:1.1.1'
 
 ### 编译运行Demo
 
