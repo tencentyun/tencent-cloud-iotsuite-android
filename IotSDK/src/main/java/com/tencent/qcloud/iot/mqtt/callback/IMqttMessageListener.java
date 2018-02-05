@@ -12,8 +12,8 @@ public interface IMqttMessageListener {
     /**
      * 收到服务端所订阅topic发送过来的消息时触发.
      *
-     * @param topic
-     * @param message
+     * @param topic topic
+     * @param message 消息
      */
     void onMessageArrived(String topic, String message);
 }

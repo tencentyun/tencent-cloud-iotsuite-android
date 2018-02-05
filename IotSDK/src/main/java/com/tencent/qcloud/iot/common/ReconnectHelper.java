@@ -12,7 +12,7 @@ package com.tencent.qcloud.iot.common;
 public class ReconnectHelper {
     public final static int MIN_RETRY_TIME_MS = 3000;
     public final static int MAX_RETRY_TIME_MS = 30000;
-    public final static int MAX_RETRIES = 5;
+    public final static int MAX_RETRIES = 5000;
 
     private boolean mAutoReconnect;
     private int mMinRetryTimeMs = MIN_RETRY_TIME_MS;
@@ -35,7 +35,7 @@ public class ReconnectHelper {
 
     /**
      * 获取下一次重连的间隔时长.
-     * @return
+     * @return 返回时长，ms
      */
     public int getRetryDelay() {
         return (int) Math.min(mMinRetryTimeMs * (long) Math.pow(2, mRetryTimes), mMaxRetryTimeMs);

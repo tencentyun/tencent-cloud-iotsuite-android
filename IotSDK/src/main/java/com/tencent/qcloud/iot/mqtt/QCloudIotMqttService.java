@@ -41,7 +41,7 @@ public class QCloudIotMqttService {
     /**
      * 建立mqtt连接
      *
-     * @param connectStateCallback
+     * @param connectStateCallback 连接状态回调
      */
     public void connect(final IMqttConnectStateCallback connectStateCallback) {
         mQCloudIotMqttClient.connect(connectStateCallback);
@@ -71,7 +71,7 @@ public class QCloudIotMqttService {
     /**
      * 向topic发布消息，必须在connect调用之后，否则无效。
      *
-     * @param request
+     * @param request 请求
      */
     public void publish(final MqttPublishRequest request) {
         mQCloudIotMqttClient.publish(request);
@@ -80,7 +80,7 @@ public class QCloudIotMqttService {
     /**
      * 订阅topic，必须在connect调用之后，否则无效。
      *
-     * @param request
+     * @param request 请求
      */
     public void subscribe(final MqttSubscribeRequest request) {
         mQCloudIotMqttClient.subscribe(request);
@@ -89,7 +89,7 @@ public class QCloudIotMqttService {
     /**
      * 取消订阅topic，必须在connect调用之后，否则无效。
      *
-     * @param request
+     * @param request 请求
      */
     public void unSubscribe(final MqttUnSubscribeRequest request) {
         mQCloudIotMqttClient.unSubscribe(request);
@@ -97,6 +97,7 @@ public class QCloudIotMqttService {
 
     /**
      * 设置监听影子消息，必须在connect调用之后，否则无效。
+     * @param shadowListener 监听类
      */
     public void setShadowMessageListener(IShadowListener shadowListener) {
         mShadowManager.setShadowMessageListener(shadowListener);
@@ -144,8 +145,7 @@ public class QCloudIotMqttService {
     /**
      * 设备端发出请求，删除影子的某个属性或全部属性。
      *
-     * @param delete
-     * null表示删除影子的所有属性，否则只删除delete json对象中值为null的属性
+     * @param delete null表示删除影子的所有属性，否则只删除delete json对象中值为null的属性
      */
     public void deleteShadow(JSONObject delete) {
         try {

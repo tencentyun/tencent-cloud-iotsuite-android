@@ -83,12 +83,19 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
             return;
         }
         mUserDisconnect = false;
-        setConnectStateAndNotify(MqttConnectState.CONNECTING);
         mMqttClientId = mQCloudMqttConfig.getProductKey() + "@" + QCloudConstants.CLIENT_SUFFIX;
         mMqttConnectStateCallback = connectStateCallback;
         mMqttRequestQueue.clear();
         mReSubscribeQueue.clear();
+        setConnectStateAndNotify(MqttConnectState.CONNECTING);
 
+        doConnect();
+    }
+
+    private void doConnect() {
+        if (Thread.currentThread() != getHandler().getLooper().getThread()) {
+            throw new IllegalStateException("wrong thread");
+        }
         if (mQCloudMqttConfig.getConnectionMode() == QCloudMqttConfig.QCloudMqttConnectionMode.MODE_DIRECT) {//直连模式，直接mqtt连接.
             mqttConnect();
         } else if (mQCloudMqttConfig.getConnectionMode() == QCloudMqttConfig.QCloudMqttConnectionMode.MODE_TOKEN) {//token模式，先请求token，再mqtt连接.
@@ -108,15 +115,14 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
 
                 @Override
                 public void onFailed(String message) {
-                    QLog.d(TAG, "get token failed, " + message);
-                    setConnectStateAndNotify(MqttConnectState.CLOSED);
+                    QLog.e(TAG, "get token failed, " + message);
+                    onConnectFailed(new Throwable("get token failed, " + message));
                 }
             });
         }
     }
 
     private void mqttConnect() {
-
         String mqttBrokerURL = "tcp://" + mQCloudMqttConfig.getMqttHost() + ":" + QCloudConstants.MQTT_PORT;
         try {
             if (mMqttClient == null) {
@@ -179,19 +185,8 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
             disconnect();
             return;
         }
-        if (mMqttClient == null || mMqttConnectOptions == null) {
-            throw new QCloudMqttClientException("error when reconnect. client or option is null");
-        }
         setConnectStateAndNotify(MqttConnectState.RECONNECTING);
-        try {
-            mMqttClient.connect(mMqttConnectOptions, null, mMqttConnectActionListener);
-        } catch (MqttException e) {
-            int responseCode = e.getReasonCode();
-            if (responseCode != MqttException.REASON_CODE_CLIENT_CONNECTED && responseCode != MqttException.REASON_CODE_CONNECT_IN_PROGRESS) {
-                QLog.d(TAG, "reconnect exception, " + e);
-                onConnectFailed(e);
-            }
-        }
+        doConnect();
         mReconnectHelper.addRetryTimes();
     }
 
@@ -273,7 +268,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
                 QLog.e(TAG, "messageArrived error, message or payload is null");
                 return;
             }
-            QLog.d(TAG,  "messageArrived: " + message + ", clientId = " + mMqttClientId + ", topic = " + topic);
+            QLog.d(TAG, "messageArrived: " + message + ", clientId = " + mMqttClientId + ", topic = " + topic);
             String msg = new String(message.getPayload(), StringUtil.UTF8);
             if (mMqttMessageListener != null) {
                 mMqttMessageListener.onMessageArrived(topic, msg);

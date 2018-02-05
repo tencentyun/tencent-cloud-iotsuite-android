@@ -50,7 +50,7 @@ public abstract class AbstractIotMqttClient {
 
     /**
      * 用于子类中，连接失败或异常中断时重连
-     * @param delay
+     * @param delay delay, ms
      */
     protected void reconnect(int delay) {
         getHandler().postDelayed(new Runnable() {
@@ -63,7 +63,7 @@ public abstract class AbstractIotMqttClient {
 
     /**
      * 向topic发布消息
-     * @param request
+     * @param request 请求
      */
     public void publish(final MqttPublishRequest request) {
         getHandler().post(new Runnable() {
@@ -76,7 +76,7 @@ public abstract class AbstractIotMqttClient {
 
     /**
      * 订阅topic
-     * @param request
+     * @param request 请求
      */
     public void subscribe(final MqttSubscribeRequest request) {
         getHandler().post(new Runnable() {
@@ -89,7 +89,7 @@ public abstract class AbstractIotMqttClient {
 
     /**
      * 取消订阅
-     * @param request
+     * @param request 请求
      */
     public void unSubscribe(final MqttUnSubscribeRequest request) {
         getHandler().post(new Runnable() {

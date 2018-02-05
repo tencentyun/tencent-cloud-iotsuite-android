@@ -105,7 +105,7 @@ public class Connection implements Parcelable {
                 .setAutoReconnect(true)
                 .setMinRetryTimeMs(1000)
                 .setMaxRetryTimeMs(20000)
-                .setMaxRetryTimes(10);
+                .setMaxRetryTimes(5000);
         connect(mQCloudMqttConfig);
     }
 
@@ -129,7 +129,7 @@ public class Connection implements Parcelable {
                 .setAutoReconnect(true)
                 .setMinRetryTimeMs(1000)
                 .setMaxRetryTimeMs(20000)
-                .setMaxRetryTimes(10);
+                .setMaxRetryTimes(5000);
         connect(mQCloudMqttConfig);
     }
 
