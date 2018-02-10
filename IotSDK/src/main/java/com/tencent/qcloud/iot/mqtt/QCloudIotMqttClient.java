@@ -83,7 +83,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
             return;
         }
         mUserDisconnect = false;
-        mMqttClientId = mQCloudMqttConfig.getProductKey() + "@" + QCloudConstants.CLIENT_SUFFIX;
+        mMqttClientId = mQCloudMqttConfig.getProductKey() + "@" + mQCloudMqttConfig.getDeviceName();
         mMqttConnectStateCallback = connectStateCallback;
         mMqttRequestQueue.clear();
         mReSubscribeQueue.clear();

@@ -6,10 +6,6 @@ package com.tencent.qcloud.iot.mqtt.constant;
  */
 
 public class QCloudConstants {
-    /**
-     * client id后缀，可以是其他值
-     */
-    public static final String CLIENT_SUFFIX = "android";
 
     /**
      * mqtt连接的端口

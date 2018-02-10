@@ -145,7 +145,7 @@ public class QCloudIotMqttService {
     /**
      * 设备端发出请求，删除影子的某个属性或全部属性。
      *
-     * @param delete null表示删除影子的所有属性，否则只删除delete json对象中值为null的属性
+     * @param delete null表示删除影子的所有属性，否则只删除delete json对象中值为JSONObject.NULL的属性
      */
     public void deleteShadow(JSONObject delete) {
         try {

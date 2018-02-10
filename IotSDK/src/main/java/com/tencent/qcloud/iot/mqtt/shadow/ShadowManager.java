@@ -111,7 +111,6 @@ public class ShadowManager {
     }
 
     public void deleteShadow(JSONObject delete) throws JSONException {
-        //TODO: need add reported
         JSONObject jsonState = new JSONObject();
         jsonState.put(SHADOW_JSON_KEY_REPORTED, (delete != null) ? delete : JSONObject.NULL);
 
