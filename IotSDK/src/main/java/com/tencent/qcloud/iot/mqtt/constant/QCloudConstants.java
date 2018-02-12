@@ -12,10 +12,14 @@ public class QCloudConstants {
      */
     public static final int MQTT_PORT = 1883;
 
+    private static final String BASE_URL = "http://gz.auth-device-iot.tencentcloudapi.com";
+
     /**
      * 请求token的url
      */
-    public static final String TOKEN_URL = "http://gz.auth-device-iot.tencentcloudapi.com/device";
+    public static final String TOKEN_URL = BASE_URL + "/device";
+
+    public static final String TIMESTAMP_URL = BASE_URL + "/time";
 
     /**
      * 请求token成功的返回值标识

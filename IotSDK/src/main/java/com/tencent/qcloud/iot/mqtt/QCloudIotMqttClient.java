@@ -100,7 +100,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
             mqttConnect();
         } else if (mQCloudMqttConfig.getConnectionMode() == QCloudMqttConfig.QCloudMqttConnectionMode.MODE_TOKEN) {//token模式，先请求token，再mqtt连接.
             TokenHelper tokenHelper = new TokenHelper(mQCloudMqttConfig.getProductId(), mQCloudMqttConfig.getDeviceName(), mQCloudMqttConfig.getDeviceSecret());
-            tokenHelper.requestToken(mMqttClientId, new TokenHelper.ITokenListener() {
+            tokenHelper.getToken(mMqttClientId, new TokenHelper.ITokenListener() {
                 @Override
                 public void onSuccessed(String userName, String password) {
                     mQCloudMqttConfig.setMqttUserName(userName)

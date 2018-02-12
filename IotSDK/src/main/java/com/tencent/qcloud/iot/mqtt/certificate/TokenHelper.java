@@ -48,11 +48,38 @@ public class TokenHelper {
         mDeviceSecret = deviceSecret;
     }
 
-    public void requestToken(final String clientId, final ITokenListener listener) {
+    public void getToken(final String clientId, final ITokenListener listener) {
         if (clientId == null) {
             throw new IllegalArgumentException("clientId is null");
         }
-        String url = generateUrl(clientId);
+        //先跟服务器同步时间
+        AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, QCloudConstants.TIMESTAMP_URL, null,
+                new AsyncHttpURLConnection.AsyncHttpEvents() {
+            @Override
+            public void onHttpError(String errorMessage) {
+                QLog.e(TAG, "get server timestamp error: " + errorMessage);
+                if (listener != null) {
+                    listener.onFailed(errorMessage);
+                }
+            }
+
+            @Override
+            public void onHttpComplete(String response) {
+                if (TextUtils.isEmpty(response)) {
+                    if (listener != null) {
+                        listener.onFailed("empty response");
+                    }
+                    return;
+                }
+                QLog.d(TAG, "get server timestamp complete, response = " + response);
+                String tokenUrl = generateTokenUrl(clientId, response);
+                requestToken(tokenUrl, listener);
+            }
+        });
+        httpConnection.send();
+    }
+
+    private void requestToken(final String url, final ITokenListener listener) {
         AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, url, null, new AsyncHttpURLConnection.AsyncHttpEvents() {
             @Override
             public void onHttpError(String errorMessage) {
@@ -98,14 +125,14 @@ public class TokenHelper {
         httpConnection.send();
     }
 
-    private String generateUrl(final String clientId) {
+    private String generateTokenUrl(final String clientId, String timestamp) {
         HashMap<String, String> paramMap = new HashMap();
         paramMap.put("clientId", clientId);
         paramMap.put("deviceName", mDeviceName);
         paramMap.put("expire", "60");
         paramMap.put("nonce", String.valueOf(new Random().nextInt(10000000)));
         paramMap.put("productId", mProductId);
-        paramMap.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
+        paramMap.put("timestamp", timestamp);
         Set<String> keySet = paramMap.keySet();
 
         Uri.Builder builder = Uri.parse(QCloudConstants.TOKEN_URL).buildUpon();
