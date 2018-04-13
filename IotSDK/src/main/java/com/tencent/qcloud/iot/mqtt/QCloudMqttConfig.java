@@ -85,23 +85,19 @@ public class QCloudMqttConfig {
      */
     private int mKeepAliveSeconds = DEFAULT_KEEP_ALIVE_SECONDS;
 
-    public QCloudMqttConfig(String mqttHost, String productKey, String deviceName, String deviceSecret) {
+    public QCloudMqttConfig(String mqttHost, String productKey, String productId) {
         if (TextUtils.isEmpty(mqttHost)) {
             throw new IllegalArgumentException("mqttHost is empty");
         }
         if (TextUtils.isEmpty(productKey)) {
             throw new IllegalArgumentException("productKey is empty");
         }
-        if (TextUtils.isEmpty(deviceName)) {
-            throw new IllegalArgumentException("deviceName is empty");
-        }
-        if (TextUtils.isEmpty(deviceSecret)) {
-            throw new IllegalArgumentException("deviceSecret is empty");
+        if (TextUtils.isEmpty(productId)) {
+            throw new IllegalArgumentException("productId is empty");
         }
         mMqttHost = mqttHost;
         mProductKey = productKey;
-        mDeviceName = deviceName;
-        mDeviceSecret = deviceSecret;
+        mProductId = productId;
     }
 
     public String getProductKey() {
@@ -112,8 +108,24 @@ public class QCloudMqttConfig {
         return mDeviceName;
     }
 
+    public QCloudMqttConfig setDeviceName(String deviceName) {
+        if (TextUtils.isEmpty(deviceName)) {
+            throw new IllegalArgumentException("deviceName is empty");
+        }
+        mDeviceName = deviceName;
+        return this;
+    }
+
     public String getDeviceSecret() {
         return mDeviceSecret;
+    }
+
+    public QCloudMqttConfig setDeviceSecret(String deviceSecret) {
+        if (TextUtils.isEmpty(deviceSecret)) {
+            throw new IllegalArgumentException("deviceSecret is empty");
+        }
+        mDeviceSecret = deviceSecret;
+        return this;
     }
 
     public String getMqttUserName() {
@@ -122,14 +134,6 @@ public class QCloudMqttConfig {
 
     public String getProductId() {
         return mProductId;
-    }
-
-    public QCloudMqttConfig setProductId(String productId) {
-        if (TextUtils.isEmpty(productId)) {
-            throw new IllegalArgumentException("productId is empty");
-        }
-        mProductId = productId;
-        return this;
     }
 
     public QCloudMqttConfig setMqttUserName(String mqttUserName) {
@@ -166,14 +170,6 @@ public class QCloudMqttConfig {
 
     public String getMqttHost() {
         return mMqttHost;
-    }
-
-    public QCloudMqttConfig setMqttHost(String mqttHost) {
-        if (TextUtils.isEmpty(mqttHost)) {
-            throw new IllegalArgumentException("mqttHost is empty");
-        }
-        mMqttHost = mqttHost;
-        return this;
     }
 
     public KeyStore getKeyStore() {

@@ -88,17 +88,16 @@ public class Connection implements Parcelable {
      * @param productKey
      * @param productId
      * @param deviceName
-     * @param deviceSecret
      * @param userName
      * @param password
      */
-    public void connectDirectMode(String mqttHost, String productKey, String productId, String deviceName, String deviceSecret, String userName, String password) {
+    public void connectDirectMode(String mqttHost, String productKey, String productId, String deviceName, String userName, String password) {
         if (mQCloudIotMqttService != null) {
             mQCloudIotMqttService.disconnect();
         }
         //mqtt参数配置
-        mQCloudMqttConfig = new QCloudMqttConfig(mqttHost, productKey, deviceName, deviceSecret)
-                .setProductId(productId)
+        mQCloudMqttConfig = new QCloudMqttConfig(mqttHost, productKey, productId)
+                .setDeviceName(deviceName)
                 .setMqttUserName(userName)
                 .setMqttPassword(password)
                 .setConnectionMode(QCloudMqttConnectionMode.MODE_DIRECT)
@@ -123,8 +122,9 @@ public class Connection implements Parcelable {
             mQCloudIotMqttService.disconnect();
         }
         //mqtt参数配置
-        mQCloudMqttConfig = new QCloudMqttConfig(mqttHost, productKey, deviceName, deviceSecret)
-                .setProductId(productId)
+        mQCloudMqttConfig = new QCloudMqttConfig(mqttHost, productKey, productId)
+                .setDeviceName(deviceName)
+                .setDeviceSecret(deviceSecret)
                 .setConnectionMode(QCloudMqttConnectionMode.MODE_TOKEN)
                 .setAutoReconnect(true)
                 .setMinRetryTimeMs(1000)

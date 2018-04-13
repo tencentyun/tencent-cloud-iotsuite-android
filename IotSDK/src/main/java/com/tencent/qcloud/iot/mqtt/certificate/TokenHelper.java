@@ -126,10 +126,11 @@ public class TokenHelper {
     }
 
     private String generateTokenUrl(final String clientId, String timestamp) {
+        int expireTime = 20160 * 60;//单位s，两周
         HashMap<String, String> paramMap = new HashMap();
         paramMap.put("clientId", clientId);
         paramMap.put("deviceName", mDeviceName);
-        paramMap.put("expire", "60");
+        paramMap.put("expire", String.valueOf(expireTime));
         paramMap.put("nonce", String.valueOf(new Random().nextInt(10000000)));
         paramMap.put("productId", mProductId);
         paramMap.put("timestamp", timestamp);
@@ -146,10 +147,7 @@ public class TokenHelper {
     private String genSignature(Map<String, String> input, String secret) {
         String content = genContent(input);
         byte[] hashHmac = hashHmac(content, secret);
-        String signature = Base64.encodeToString(hashHmac, Base64.DEFAULT);
-        if (signature.endsWith("\n")) {
-            signature = signature.replace("\n", "");
-        }
+        String signature = Base64.encodeToString(hashHmac, Base64.NO_WRAP);
         //QLog.d(TAG, "content = " + content + ", signature = " + signature);
         return signature;
     }

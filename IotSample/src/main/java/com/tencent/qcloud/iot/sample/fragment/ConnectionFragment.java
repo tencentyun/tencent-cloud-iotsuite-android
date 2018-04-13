@@ -55,7 +55,6 @@ public class ConnectionFragment extends Fragment {
     private String mDirectProductKey = "mqtt-m2i58z3s";
     private String mDirectProductId = "iot-6xzr8ap8";
     private String mDirectDeviceName = "test_android_1";
-    private String mDirectDeviceSecret = "48bf05179b6f1be3b38c89f27c804f11";
     private String mDirectUserName = "AKIDNgssgTw1pW2NahKR4oRt9D6ofNuGgSKG";
     private String mDirectPassword = "085Nmo6yhgR/TMjSPfFWP+TEVrggjVNFtAyvZUCxp0U=";
     //token认证模式参数
@@ -109,7 +108,7 @@ public class ConnectionFragment extends Fragment {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
                         if (mConnectionMode == QCloudMqttConnectionMode.MODE_DIRECT) {
-                            mConnection.connectDirectMode(mDirectMqttHost, mDirectProductKey, mDirectProductId, mDirectDeviceName, mDirectDeviceSecret, mDirectUserName,
+                            mConnection.connectDirectMode(mDirectMqttHost, mDirectProductKey, mDirectProductId, mDirectDeviceName, mDirectUserName,
                                     mDirectPassword);
                         } else {
                             mConnection.connectTokenMode(mTokenMqttHost, mTokenProductKey, mTokenProductId, mTokenDeviceName, mTokenDeviceSecret);
@@ -192,7 +191,6 @@ public class ConnectionFragment extends Fragment {
                     mDirectProductKey = mETProductKey.getText().toString();
                     mDirectProductId = mETProductId.getText().toString();
                     mDirectDeviceName = mETDeviceName.getText().toString();
-                    mDirectDeviceSecret = mETDeviceSecret.getText().toString();
                     mDirectUserName = mETUserName.getText().toString();
                     mDirectPassword = mETPassword.getText().toString();
                 } else if (mConnectionMode == QCloudMqttConnectionMode.MODE_TOKEN) {
@@ -224,7 +222,6 @@ public class ConnectionFragment extends Fragment {
             mETProductKey.setText(mDirectProductKey);
             mETProductId.setText(mDirectProductId);
             mETDeviceName.setText(mDirectDeviceName);
-            mETDeviceSecret.setText(mDirectDeviceSecret);
             mETUserName.setText(mDirectUserName);
             mETPassword.setText(mDirectPassword);
         } else if (mConnectionMode == QCloudMqttConnectionMode.MODE_TOKEN) {

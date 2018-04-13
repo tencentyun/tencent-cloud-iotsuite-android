@@ -13,7 +13,7 @@ IotSDK是腾讯云iotsuite的设备端SDK，IotSample是使用IotSDK的demo。
 
 2、直接依赖jcenter上的库
 
-    implementation 'com.tencent.qcloud:iot-android-sdk:1.1.3'
+    implementation 'com.tencent.qcloud:iot-android-sdk:1.2.3'
 
 ### 编译运行Demo
 
@@ -43,7 +43,6 @@ Demo中的参数配置示例在ConnectionFragment.java中：
     private String mDirectProductKey = "mqtt-m2i58z3s";
     private String mDirectProductId = "iot-6xzr8ap8";
     private String mDirectDeviceName = "test_android_1";
-    private String mDirectDeviceSecret = "48bf05179b6f1be3b38c89f27c804f11";
     private String mDirectUserName = "AKIDNgssgTw1pW2NahKR4oRt9D6ofNuGgSKG";
     private String mDirectPassword = "085Nmo6yhgR/TMjSPfFWP+TEVrggjVNFtAyvZUCxp0U=";
     //token认证模式参数

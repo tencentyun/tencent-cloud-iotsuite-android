@@ -258,7 +258,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
     private MqttCallback mMqttCallback = new MqttCallback() {
         @Override
         public void connectionLost(Throwable cause) {
-            QLog.d(TAG, "connectionLost, clientId = " + mMqttClientId);
+            QLog.d(TAG, "connectionLost, clientId = " + mMqttClientId, cause);
             onConnectFailed(cause);
         }
 
