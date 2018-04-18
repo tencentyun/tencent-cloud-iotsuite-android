@@ -31,11 +31,11 @@ public class QCloudTLSSocketFactory {
             //context.init(null, managers, null);
             return context.getSocketFactory();
         } catch (NoSuchAlgorithmException e) {
-            throw new QCloudSSLSocketException("NoSuchAlgorithmException: " + e);
+            throw new QCloudSSLSocketException("NoSuchAlgorithmException", e);
         } catch (KeyStoreException e) {
-            throw new QCloudSSLSocketException("KeyStoreException: " + e);
+            throw new QCloudSSLSocketException("KeyStoreException", e);
         } catch (KeyManagementException e) {
-            throw new QCloudSSLSocketException("KeyManagementException: " + e);
+            throw new QCloudSSLSocketException("KeyManagementException", e);
         }
 
     }

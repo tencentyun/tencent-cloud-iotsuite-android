@@ -115,7 +115,7 @@ public class TokenHelper {
                         listener.onSuccessed(userName, password);
                     }
                 } catch (JSONException e) {
-                    QLog.d(TAG, "onHttpComplete, " + e);
+                    QLog.d(TAG, "onHttpComplete", e);
                     if (listener != null) {
                         listener.onFailed(response);
                     }
@@ -175,9 +175,9 @@ public class TokenHelper {
             return byteArray;
 
         } catch (NoSuchAlgorithmException e) {
-            throw new QCloudMqttClientException("hash hmac error: " + e);
+            throw new QCloudMqttClientException("hash hmac error", e);
         } catch (InvalidKeyException e) {
-            throw new QCloudMqttClientException("hash hmac error: " + e);
+            throw new QCloudMqttClientException("hash hmac error", e);
         }
     }
 

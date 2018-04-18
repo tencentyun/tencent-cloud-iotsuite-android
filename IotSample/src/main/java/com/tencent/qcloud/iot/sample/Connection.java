@@ -7,7 +7,6 @@ import android.util.Log;
 import com.tencent.qcloud.iot.common.QLog;
 import com.tencent.qcloud.iot.mqtt.QCloudIotMqttService;
 import com.tencent.qcloud.iot.mqtt.QCloudMqttConfig;
-import com.tencent.qcloud.iot.mqtt.QCloudMqttConfig.QCloudMqttConnectionMode;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
@@ -16,10 +15,9 @@ import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
-import com.tencent.qcloud.iot.mqtt.shadow.IShadowListener;
 import com.tencent.qcloud.iot.sample.model.Subscribe;
-
-import org.json.JSONObject;
+import com.tencent.qcloud.iot.sample.qcloud.DeviceDataManager;
+import com.tencent.qcloud.iot.sample.qcloud.JsonFileData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +50,10 @@ public class Connection implements Parcelable {
      */
     private IMessageNotifyListener mMessageNotifyListener;
 
+    private DeviceDataManager mDeviceDataManager;
+
     public Connection() {
+        mDeviceDataManager = new DeviceDataManager();
         mSubscribesMap = new HashMap<>();
         QLog.setLogLevel(QLog.QLOG_LEVEL_DEBUG);
     }
@@ -82,54 +83,26 @@ public class Connection implements Parcelable {
     }
 
     /**
-     * mqtt直连模式
+     * 连接mqtt
      *
-     * @param mqttHost
-     * @param productKey
-     * @param productId
-     * @param deviceName
-     * @param userName
-     * @param password
+     * @param deviceName   不可以为null
+     * @param deviceSecret 直连模式下可以为null, token模式下不可以为null.
      */
-    public void connectDirectMode(String mqttHost, String productKey, String productId, String deviceName, String userName, String password) {
+    public void connect(String deviceName, String deviceSecret) {
         if (mQCloudIotMqttService != null) {
             mQCloudIotMqttService.disconnect();
         }
-        //mqtt参数配置
-        mQCloudMqttConfig = new QCloudMqttConfig(mqttHost, productKey, productId)
-                .setDeviceName(deviceName)
-                .setMqttUserName(userName)
-                .setMqttPassword(password)
-                .setConnectionMode(QCloudMqttConnectionMode.MODE_DIRECT)
-                .setAutoReconnect(true)
+        mQCloudMqttConfig = mDeviceDataManager.genQCloudMqttConfig();
+        mQCloudMqttConfig.setDeviceName(deviceName);
+        if (deviceSecret != null) {
+            mQCloudMqttConfig.setDeviceSecret(deviceSecret);
+        }
+        //设置自动重连参数
+        mQCloudMqttConfig.setAutoReconnect(true)
                 .setMinRetryTimeMs(1000)
                 .setMaxRetryTimeMs(20000)
                 .setMaxRetryTimes(5000);
-        connect(mQCloudMqttConfig);
-    }
 
-    /**
-     * token连接模式
-     *
-     * @param mqttHost
-     * @param productKey
-     * @param productId
-     * @param deviceName
-     * @param deviceSecret
-     */
-    public void connectTokenMode(String mqttHost, String productKey, String productId, String deviceName, String deviceSecret) {
-        if (mQCloudIotMqttService != null) {
-            mQCloudIotMqttService.disconnect();
-        }
-        //mqtt参数配置
-        mQCloudMqttConfig = new QCloudMqttConfig(mqttHost, productKey, productId)
-                .setDeviceName(deviceName)
-                .setDeviceSecret(deviceSecret)
-                .setConnectionMode(QCloudMqttConnectionMode.MODE_TOKEN)
-                .setAutoReconnect(true)
-                .setMinRetryTimeMs(1000)
-                .setMaxRetryTimeMs(20000)
-                .setMaxRetryTimes(5000);
         connect(mQCloudMqttConfig);
     }
 
@@ -157,9 +130,7 @@ public class Connection implements Parcelable {
         });
         //设置监听来自已订阅topic的消息
         mQCloudIotMqttService.setMqttMessageListener(mMqttMessageListener);
-        //TODO:创建影子成功后？
-        //设置监听影子消息，connect后调用
-        mQCloudIotMqttService.setShadowMessageListener(mShadowListener);
+        mDeviceDataManager.setQCloudIotMqttService(mQCloudIotMqttService);
     }
 
     /**
@@ -309,6 +280,14 @@ public class Connection implements Parcelable {
         }
     }
 
+    public JsonFileData getJsonFileData() {
+        return mDeviceDataManager.getJsonFileData();
+    }
+
+    public void setDataControlListener(JsonFileData.IDataControlListener dataControlListener) {
+        mDeviceDataManager.setDataControlListener(dataControlListener);
+    }
+
     public Connection setSubscribeStateListener(ISubscribeStateListener subscribeStateListener) {
         mSubscribeStateListener = subscribeStateListener;
         return this;
@@ -340,64 +319,4 @@ public class Connection implements Parcelable {
         void onMessage(String msg);
     }
 
-    /**
-     * 获取影子。
-     * 异步操作，成功后触发 IShadowListener.onGetShadow
-     */
-    public void getShadow() {
-        if (mQCloudIotMqttService == null) {
-            return;
-        }
-        mQCloudIotMqttService.getShadow();
-    }
-
-    /**
-     * 设备端发出请求，汇报自身状态属性用于更新影子
-     *
-     * @param report
-     */
-    public void reportShadow(JSONObject report) {
-        if (mQCloudIotMqttService == null) {
-            return;
-        }
-        mQCloudIotMqttService.reportShadow(report);
-    }
-
-    /**
-     * 设备端发出请求，删除影子的某个属性或全部属性。
-     *
-     * @param delete null表示删除影子的所有属性，否则只删除delete json对象中值为JSONObject.NULL的属性
-     */
-    public void deleteShadow(JSONObject delete) {
-        if (mQCloudIotMqttService == null) {
-            return;
-        }
-        mQCloudIotMqttService.deleteShadow(delete);
-    }
-
-    /**
-     * 监听影子消息
-     */
-    private IShadowListener mShadowListener = new IShadowListener() {
-
-        @Override
-        public void onReplySuccess() {
-            notifyMessage("on shadow reply, success");
-        }
-
-        @Override
-        public void onReplyFail(int errorCode, String status) {
-            notifyMessage("on shadow reply, error, code = " + errorCode + ", status = " + status);
-        }
-
-        @Override
-        public void onGetShadow(JSONObject desired, JSONObject reported) {
-            notifyMessage("on get shadow, desired = " + desired + ", reported = " + reported);
-        }
-
-        @Override
-        public void onControl(JSONObject desired) {
-            notifyMessage("on control, desired = " + desired);
-        }
-    };
 }

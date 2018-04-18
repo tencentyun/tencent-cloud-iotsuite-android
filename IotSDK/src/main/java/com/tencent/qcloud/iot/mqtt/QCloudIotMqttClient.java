@@ -138,7 +138,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
             mMqttClient.connect(mMqttConnectOptions, null, mMqttConnectActionListener);
 
         } catch (MqttException e) {
-            QLog.d(TAG, "connect exception: " + e);
+            QLog.d(TAG, "connect exception", e);
             switch (e.getReasonCode()) {
                 case MqttException.REASON_CODE_CLIENT_CONNECTED:
                     setConnectStateAndNotify(MqttConnectState.CONNECTED);
@@ -152,7 +152,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
                     break;
             }
         } catch (QCloudSSLSocketException e) {
-            throw new QCloudCertificateException("get socket factory exception! " + e);
+            throw new QCloudCertificateException("get socket factory exception!", e);
         }
     }
 
@@ -208,7 +208,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
                 mMqttClient.setCallback(null);
                 mMqttClient.disconnect(0);
             } catch (MqttException e) {
-                QLog.d(TAG, "disconnect exception: " + e);
+                QLog.d(TAG, "disconnect exception", e);
             }
         }
         mMqttClient = null;
@@ -258,7 +258,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
     private MqttCallback mMqttCallback = new MqttCallback() {
         @Override
         public void connectionLost(Throwable cause) {
-            QLog.d(TAG, "connectionLost, clientId = " + mMqttClientId, cause);
+            QLog.i(TAG, "connectionLost, clientId = " + mMqttClientId, cause);
             onConnectFailed(cause);
         }
 
@@ -462,7 +462,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
      * 断网重连后，重新订阅topic
      */
     private void reSubscribeFromQueue() {
-        ConcurrentLinkedQueue<MqttSubscribeRequest> cloneQueue = new ConcurrentLinkedQueue(mReSubscribeQueue);
+        ConcurrentLinkedQueue<MqttSubscribeRequest> cloneQueue = new ConcurrentLinkedQueue<MqttSubscribeRequest>(mReSubscribeQueue);
         mReSubscribeQueue.clear();
         MqttSubscribeRequest request;
         while ((request = cloneQueue.poll()) != null) {

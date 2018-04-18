@@ -1,0 +1,21 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:layout_marginTop="56dp"
+              android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="设备端: "
+        android:textColor="@color/textColorPrimary"
+        android:textSize="25sp"/>
+
+    <Button
+        android:id="@+id/btn_test"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="测试用户修改数据"/>
+
+</LinearLayout>

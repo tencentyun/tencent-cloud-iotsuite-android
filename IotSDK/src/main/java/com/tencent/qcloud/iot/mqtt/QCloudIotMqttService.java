@@ -1,12 +1,15 @@
 package com.tencent.qcloud.iot.mqtt;
 
 import com.tencent.qcloud.iot.common.QLog;
+import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
+import com.tencent.qcloud.iot.mqtt.constant.MqttConnectState;
+import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
-import com.tencent.qcloud.iot.mqtt.shadow.IShadowListener;
+import com.tencent.qcloud.iot.mqtt.shadow.IDataEventListener;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowTopicHelper;
 
@@ -31,7 +34,7 @@ public class QCloudIotMqttService {
         }
         mQCloudIotMqttClient = new QCloudIotMqttClient(config);
         mShadowTopicHelper = new ShadowTopicHelper(config.getProductId(), config.getDeviceName());
-        mShadowManager = new ShadowManager(this, mShadowTopicHelper);
+        mShadowManager = ShadowManager.getInstance(this, mShadowTopicHelper);
     }
 
     public void setMqttMessageListener(IMqttMessageListener mqttMessageListener) {
@@ -44,7 +47,22 @@ public class QCloudIotMqttService {
      * @param connectStateCallback 连接状态回调
      */
     public void connect(final IMqttConnectStateCallback connectStateCallback) {
-        mQCloudIotMqttClient.connect(connectStateCallback);
+        mQCloudIotMqttClient.connect(new IMqttConnectStateCallback() {
+            @Override
+            public void onStateChanged(MqttConnectState state) {
+                if (state == MqttConnectState.CONNECTED) {
+                    //connect后getShadow以得到desired，用来初始化
+                    try {
+                        mShadowManager.getShadow();
+                    } catch (JSONException e) {
+                        QLog.e(TAG, "getShadow after connect", e);
+                    }
+                }
+                if (connectStateCallback != null) {
+                    connectStateCallback.onStateChanged(state);
+                }
+            }
+        });
 
         mQCloudIotMqttClient.setMqttMessageListener(new IMqttMessageListener() {
             @Override
@@ -59,6 +77,7 @@ public class QCloudIotMqttService {
                 }
             }
         });
+        subscribeShadowMessage();
     }
 
     /**
@@ -95,67 +114,44 @@ public class QCloudIotMqttService {
         mQCloudIotMqttClient.unSubscribe(request);
     }
 
-    /**
-     * 设置监听影子消息，必须在connect调用之后，否则无效。
-     * @param shadowListener 监听类
-     */
-    public void setShadowMessageListener(IShadowListener shadowListener) {
-        mShadowManager.setShadowMessageListener(shadowListener);
-    }
-
-    /**
-     * 获取影子。
-     * 异步操作，成功后触发 IShadowListener.onGetShadow
-     */
-    public void getShadow() {
-        try {
-            mShadowManager.getShadow();
-        } catch (JSONException e) {
-            QLog.e(TAG, "getShadow", e);
-        }
-    }
-
-    /**
-     * APP端操作影子，进而间接操作设备。
-     * 备注：目前未规划通过mqtt发desired update设备，该接口暂不对外。
-     *
-     * @param desire 要操作的设备属性的json文档
-     */
-    private void desireShadow(JSONObject desire) {
-        try {
-            mShadowManager.desireShadow(desire);
-        } catch (JSONException e) {
-            QLog.e(TAG, "desireShadow", e);
-        }
-    }
-
-    /**
-     * 设备端发出请求，汇报自身状态属性用于更新影子
-     *
-     * @param report 要report的属性的json文档
-     */
-    public void reportShadow(JSONObject report) {
-        try {
-            mShadowManager.reportShadow(report);
-        } catch (JSONException e) {
-            QLog.e(TAG, "reportShadow", e);
-        }
-    }
-
-    /**
-     * 设备端发出请求，删除影子的某个属性或全部属性。
-     *
-     * @param delete null表示删除影子的所有属性，否则只删除delete json对象中值为JSONObject.NULL的属性
-     */
-    public void deleteShadow(JSONObject delete) {
-        try {
-            mShadowManager.deleteShadow(delete);
-        } catch (JSONException e) {
-            QLog.e(TAG, "deleteShadow", e);
-        }
-    }
-
     private void onShadowMessageArrived(String message) {
         mShadowManager.parseShadowMessage(message);
+    }
+
+    /**
+     * 订阅shadow消息
+     */
+    private void subscribeShadowMessage() {
+        MqttSubscribeRequest request = new MqttSubscribeRequest()
+                .setTopic(mShadowTopicHelper.getGetTopic())
+                .setQos(QCloudIotMqttQos.QOS1)
+                .setCallback(new IMqttActionCallback() {
+                    @Override
+                    public void onSuccess() {
+                        //QLog.d(TAG, "setShadowMessageListener successed");
+                    }
+
+                    @Override
+                    public void onFailure(Throwable exception) {
+                        QLog.e(TAG, "setShadowMessageListener failed", exception);
+                    }
+                });
+        subscribe(request);
+    }
+
+    public void onLocalDataChange(JSONObject localDeviceData) {
+        mShadowManager.onLocalDataChange(localDeviceData);
+    }
+
+    public void onUserChangeData(JSONObject userDesired, boolean commit) {
+        mShadowManager.onUserChangeData(userDesired, commit);
+    }
+
+    /**
+     * 监听来自服务端的控制消息
+     * @param dataEventListener
+     */
+    public void setDataEventListener(IDataEventListener dataEventListener) {
+        mShadowManager.setDataEventListener(dataEventListener);
     }
 }

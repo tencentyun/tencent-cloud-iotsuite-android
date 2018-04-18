@@ -1,0 +1,51 @@
+{
+  "product_id": "iot-pbppj8jy",
+  "product_key": "mqtt-4tevxlx8e",
+  "product_secret": "",
+  "app_id": 0,
+  "region": "gz",
+  "name": "智能灯",
+  "description": "可远程开关、调节亮度和颜色的智能灯。",
+  "domain": "mqtt-4tevxlx8e.ap-guangzhou.mqtt.tencentcloudmq.com",
+  "standard": 3,
+  "auth_type": 1,
+  "data_template": [
+    {
+      "name": "device_switch",
+      "mode": "r",
+      "type": "bool",
+      "range": [
+        false,
+        true
+      ],
+      "desc": "开关"
+    },
+    {
+      "name": "color",
+      "mode": "w",
+      "type": "enum",
+      "range": [
+        "red",
+        "green",
+        "blue"
+      ],
+      "desc": "颜色"
+    },
+    {
+      "name": "brightness",
+      "mode": "rw",
+      "type": "number",
+      "range": [
+        0,
+        100
+      ],
+      "desc": "亮度"
+    }
+  ],
+  "deleted": 0,
+  "message": "",
+  "create_time": "2018-01-12 00:00:00",
+  "update_time": "2018-03-26 00:00:00",
+  "username": "username",
+  "password": "password"
+}

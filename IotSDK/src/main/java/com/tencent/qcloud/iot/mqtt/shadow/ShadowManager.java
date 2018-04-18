@@ -5,7 +5,6 @@ import com.tencent.qcloud.iot.mqtt.QCloudIotMqttService;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
-import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,6 +14,10 @@ import org.json.JSONObject;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
+/**
+ * 影子管理类
+ * 为了避免用户外部调用connect和disconnect导致ShadowManager数据被清空，设计为单例。
+ */
 public class ShadowManager {
     private static final String SHADOW_JSON_KEY_METHOD = "method";
     private static final String SHADOW_JSON_KEY_STATE = "state";
@@ -24,6 +27,7 @@ public class ShadowManager {
     private static final String SHADOW_JSON_KEY_CODE = "code";
     private static final String SHADOW_JSON_KEY_VERSION = "version";
     private static final String SHADOW_JSON_KEY_TIMESTAMP = "timestamp";
+    private static final String SHADOW_JSON_KEY_PASSTHROUGH = "passthrough";
 
     private static final String SHADOW_JSON_KEY_REPORTED = "reported";
     private static final String SHADOW_JSON_KEY_DESIRED = "desired";
@@ -34,45 +38,50 @@ public class ShadowManager {
     private static final String SHADOW_METHOD_REPLY = "reply";
     private static final String SHADOW_METHOD_CONTROL = "control";
 
+    /**
+     * 上报固件信息，设备主动上报
+     */
+    private static final String SHADOW_METHOD_UPDATE_FIRM_INFO = "update_firm_info";
+
+    /**
+     * 上报固件信息，服务端下发指令要求客户端上报
+     */
+    private static final String SHADOW_METHOD_REPORT_FIRM_INFO = "report_firm_info";
+
     public static final int RTCODE_OK = 0;
     public static final int RTCODE_BAD_SHADOW_MSG = 400;
     public static final int RTCODE_SHADOW_MSG_MISSING_METHOD = 401;
     public static final int RTCODE_SHADOW_MISSING_STAT = 402;
     public static final int RTCODE_UNSUPPORTED_SHADOW_METHOD = 403;
     public static final int RTCODE_SHADOW_BAD_STAT = 404;
+    public static final int RTCODE_TOO_MANY_SHADOW_ATTR = 405;
     public static final int RTCODE_SHADOW_INTERNAL_ERROR = 500;
 
     private static final String TAG = ShadowManager.class.getSimpleName();
+    private static ShadowManager mInstance;
     private QCloudIotMqttService mQCloudIotMqttService;
     private ShadowTopicHelper mShadowTopicHelper;
-    private IShadowListener mShadowListener;
+    private DeviceDataProcessor mDeviceDataProcessor;
 
-    public ShadowManager(QCloudIotMqttService mqttService, ShadowTopicHelper shadowTopicHelper) {
+    public static ShadowManager getInstance(QCloudIotMqttService mqttService, ShadowTopicHelper shadowTopicHelper) {
         if (mqttService == null || shadowTopicHelper == null) {
             throw new IllegalArgumentException("mqttService and shadowTopicHelper cannot be null");
         }
-        mQCloudIotMqttService = mqttService;
-        mShadowTopicHelper = shadowTopicHelper;
+        if (mInstance == null) {
+            mInstance = new ShadowManager(shadowTopicHelper);
+        }
+        mInstance.setQCloudIotMqttService(mqttService);
+        return mInstance;
     }
 
-    public void setShadowMessageListener(IShadowListener shadowListener) {
-        //TODO: set QOS1?
-        MqttSubscribeRequest request = new MqttSubscribeRequest()
-                .setTopic(mShadowTopicHelper.getGetTopic())
-                .setQos(QCloudIotMqttQos.QOS0)
-                .setCallback(new IMqttActionCallback() {
-                    @Override
-                    public void onSuccess() {
-                        //QLog.d(TAG, "setShadowMessageListener successed");
-                    }
+    private ShadowManager(ShadowTopicHelper shadowTopicHelper) {
+        mShadowTopicHelper = shadowTopicHelper;
+        mDeviceDataProcessor = new DeviceDataProcessor(this);
+    }
 
-                    @Override
-                    public void onFailure(Throwable exception) {
-                        QLog.e(TAG, "setShadowMessageListener failed, " + exception);
-                    }
-                });
-        mQCloudIotMqttService.subscribe(request);
-        mShadowListener = shadowListener;
+    private ShadowManager setQCloudIotMqttService(QCloudIotMqttService QCloudIotMqttService) {
+        mQCloudIotMqttService = QCloudIotMqttService;
+        return this;
     }
 
     public void getShadow() throws JSONException {
@@ -83,25 +92,24 @@ public class ShadowManager {
     }
 
     public void desireShadow(JSONObject desire) throws JSONException {
-        if (desire == null) {
-            throw new IllegalArgumentException("desire is null");
-        }
-        JSONObject jsonState = new JSONObject();
-        jsonState.put(SHADOW_JSON_KEY_DESIRED, desire);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put(SHADOW_JSON_KEY_METHOD, SHADOW_METHOD_UPDATE);
-        jsonObject.put(SHADOW_JSON_KEY_STATE, jsonState);
-
-        publishShadowRequest(jsonObject.toString());
+        updateShadow(desire, null);
     }
 
     public void reportShadow(JSONObject report) throws JSONException {
-        if (report == null) {
-            throw new IllegalArgumentException("report is null");
+        updateShadow(null, report);
+    }
+
+    public void updateShadow(JSONObject desire, JSONObject report) throws JSONException {
+        if (desire == null && report == null) {
+            throw new IllegalArgumentException("desire and report is null");
         }
         JSONObject jsonState = new JSONObject();
-        jsonState.put(SHADOW_JSON_KEY_REPORTED, report);
+        if (desire != null) {
+            jsonState.put(SHADOW_JSON_KEY_DESIRED, desire);
+        }
+        if (report != null) {
+            jsonState.put(SHADOW_JSON_KEY_REPORTED, report);
+        }
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(SHADOW_JSON_KEY_METHOD, SHADOW_METHOD_UPDATE);
@@ -125,7 +133,7 @@ public class ShadowManager {
         QLog.d(TAG, "publishShadowRequest " + message);
         MqttPublishRequest request = new MqttPublishRequest()
                 .setTopic(mShadowTopicHelper.getUpdateTopic())
-                .setQos(QCloudIotMqttQos.QOS0)
+                .setQos(QCloudIotMqttQos.QOS1)
                 .setMsg(message)
                 .setCallback(new IMqttActionCallback() {
                     @Override
@@ -135,7 +143,7 @@ public class ShadowManager {
 
                     @Override
                     public void onFailure(Throwable exception) {
-                        QLog.e(TAG, "publishShadowRequest failed, " + exception);
+                        QLog.e(TAG, "publishShadowRequest failed", exception);
                     }
                 });
         mQCloudIotMqttService.publish(request);
@@ -167,7 +175,7 @@ public class ShadowManager {
      * @param jsonObject
      * @throws JSONException
      */
-    private void onReply(JSONObject jsonObject) throws JSONException {
+    private synchronized void onReply(JSONObject jsonObject) throws JSONException {
         long timeStamp = jsonObject.getLong(SHADOW_JSON_KEY_TIMESTAMP);
         JSONObject payload = jsonObject.getJSONObject(SHADOW_JSON_KEY_PAYLOAD);
         int code = payload.getInt(SHADOW_JSON_KEY_CODE);
@@ -175,23 +183,17 @@ public class ShadowManager {
         JSONObject state = payload.optJSONObject(SHADOW_JSON_KEY_STATE);
         JSONObject metadata = payload.optJSONObject(SHADOW_JSON_KEY_METADATE);
         if (code == RTCODE_OK) {
-            if (mShadowListener != null) {
-                mShadowListener.onReplySuccess();
-            }
+            QLog.i(TAG, "on shadow reply, success");
             if (state != null) {
-                // get success
+                // get shadow success
                 JSONObject desired = state.getJSONObject(SHADOW_JSON_KEY_DESIRED);
                 JSONObject reported = state.getJSONObject(SHADOW_JSON_KEY_REPORTED);
-                if (mShadowListener != null) {
-                    mShadowListener.onGetShadow(desired, reported);
-                }
+                mDeviceDataProcessor.processDesiredForInit(desired);
             } else {
                 // report or delete success
             }
         } else {
-            if (mShadowListener != null) {
-                mShadowListener.onReplyFail(code, status);
-            }
+            QLog.e(TAG, "on shadow reply, error, code = " + code + ", status = " + status);
         }
     }
 
@@ -201,7 +203,7 @@ public class ShadowManager {
      * @param jsonObject
      * @throws JSONException
      */
-    private void onControl(JSONObject jsonObject) throws JSONException {
+    private synchronized void onControl(JSONObject jsonObject) throws JSONException {
         //TODO:根据时间戳判断control消息是否过期
         long timeStamp = jsonObject.getLong(SHADOW_JSON_KEY_TIMESTAMP);
         JSONObject payload = jsonObject.getJSONObject(SHADOW_JSON_KEY_PAYLOAD);
@@ -211,11 +213,25 @@ public class ShadowManager {
             JSONObject state = payload.getJSONObject(SHADOW_JSON_KEY_STATE);
             JSONObject metadata = payload.getJSONObject(SHADOW_JSON_KEY_METADATE);
             JSONObject desired = state.getJSONObject(SHADOW_JSON_KEY_DESIRED);
-            if (mShadowListener != null) {
-                mShadowListener.onControl(desired);
-            }
+            mDeviceDataProcessor.processDeisredForControl(desired);
         } else {
             QLog.e(TAG, "onControl error, message = " + jsonObject.toString());
         }
+    }
+
+    public void onLocalDataChange(JSONObject localDeviceData) {
+        mDeviceDataProcessor.updateLocalDeviceData(localDeviceData);
+    }
+
+    public void onUserChangeData(JSONObject userDesired, boolean commit) {
+        try {
+            mDeviceDataProcessor.onUserChangeData(userDesired, commit);
+        } catch (JSONException e) {
+            QLog.e(TAG, "onUserChangeData", e);
+        }
+    }
+
+    public void setDataEventListener(IDataEventListener dataEventListener) {
+        mDeviceDataProcessor.setDataEventListener(dataEventListener);
     }
 }
