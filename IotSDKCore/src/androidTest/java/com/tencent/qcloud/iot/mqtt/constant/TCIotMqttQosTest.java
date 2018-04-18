@@ -8,11 +8,11 @@ import org.junit.Test;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudIotMqttQosTest {
+public class TCIotMqttQosTest {
 
     @Test
     public void testAsInt() {
-        Assert.assertEquals(QCloudIotMqttQos.QOS0.asInt(), 0);
-        Assert.assertEquals(QCloudIotMqttQos.QOS1.asInt(), 1);
+        Assert.assertEquals(TCIotMqttQos.QOS0.asInt(), 0);
+        Assert.assertEquals(TCIotMqttQos.QOS1.asInt(), 1);
     }
 }

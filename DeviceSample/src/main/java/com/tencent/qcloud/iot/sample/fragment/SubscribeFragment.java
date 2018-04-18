@@ -70,7 +70,12 @@ public class SubscribeFragment extends Fragment {
                 public void onSubscribeStateChanged() {
                     mSubscribes.clear();
                     mSubscribes.addAll(mConnection.getSubscribes());
-                    adapter.notifyDataSetChanged();
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
                 }
             });
             subscribeListView.setAdapter(adapter);

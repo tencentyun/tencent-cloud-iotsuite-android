@@ -5,13 +5,13 @@ import com.tencent.qcloud.iot.common.ReconnectHelper;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
-import com.tencent.qcloud.iot.mqtt.certificate.QCloudCertificateException;
-import com.tencent.qcloud.iot.mqtt.certificate.QCloudSSLSocketException;
-import com.tencent.qcloud.iot.mqtt.certificate.QCloudTLSSocketFactory;
+import com.tencent.qcloud.iot.mqtt.certificate.TCCertificateException;
+import com.tencent.qcloud.iot.mqtt.certificate.TCSSLSocketException;
+import com.tencent.qcloud.iot.mqtt.certificate.TCTLSSocketFactory;
 import com.tencent.qcloud.iot.mqtt.certificate.TokenHelper;
 import com.tencent.qcloud.iot.mqtt.constant.MqttConnectState;
-import com.tencent.qcloud.iot.mqtt.constant.QCloudConstants;
-import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
+import com.tencent.qcloud.iot.mqtt.constant.TCConstants;
+import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.BaseMqttRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
@@ -38,10 +38,10 @@ import javax.net.ssl.SSLSocketFactory;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-class QCloudIotMqttClient extends AbstractIotMqttClient {
-    private static final String TAG = QCloudIotMqttClient.class.getSimpleName();
+public class TCIotMqttClient extends AbstractIotMqttClient {
+    private static final String TAG = TCIotMqttClient.class.getSimpleName();
 
-    private QCloudMqttConfig mQCloudMqttConfig;
+    private TCMqttConfig mTCMqttConfig;
     private MqttAsyncClient mMqttClient;
     private MqttConnectOptions mMqttConnectOptions;
     private MqttConnectState mConnectState = MqttConnectState.CLOSED;
@@ -53,11 +53,11 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
     private ConcurrentLinkedQueue<MqttSubscribeRequest> mReSubscribeQueue;
     private IMqttMessageListener mMqttMessageListener;
 
-    public QCloudIotMqttClient(QCloudMqttConfig config) {
+    public TCIotMqttClient(TCMqttConfig config) {
         if (config == null) {
             throw new IllegalArgumentException("config cannot be null!");
         }
-        mQCloudMqttConfig = config;
+        mTCMqttConfig = config;
         mReconnectHelper = new ReconnectHelper(config.isAutoReconnect())
                 .setMinRetryTimeMs(config.getMinRetryTimeMs())
                 .setMaxRetryTimeMs(config.getMaxRetryTimeMs())
@@ -83,7 +83,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
             return;
         }
         mUserDisconnect = false;
-        mMqttClientId = mQCloudMqttConfig.getProductKey() + "@" + mQCloudMqttConfig.getDeviceName();
+        mMqttClientId = mTCMqttConfig.getProductKey() + "@" + mTCMqttConfig.getDeviceName();
         mMqttConnectStateCallback = connectStateCallback;
         mMqttRequestQueue.clear();
         mReSubscribeQueue.clear();
@@ -96,14 +96,14 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
         if (Thread.currentThread() != getHandler().getLooper().getThread()) {
             throw new IllegalStateException("wrong thread");
         }
-        if (mQCloudMqttConfig.getConnectionMode() == QCloudMqttConfig.QCloudMqttConnectionMode.MODE_DIRECT) {//直连模式，直接mqtt连接.
+        if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_DIRECT) {//直连模式，直接mqtt连接.
             mqttConnect();
-        } else if (mQCloudMqttConfig.getConnectionMode() == QCloudMqttConfig.QCloudMqttConnectionMode.MODE_TOKEN) {//token模式，先请求token，再mqtt连接.
-            TokenHelper tokenHelper = new TokenHelper(mQCloudMqttConfig.getProductId(), mQCloudMqttConfig.getDeviceName(), mQCloudMqttConfig.getDeviceSecret());
+        } else if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_TOKEN) {//token模式，先请求token，再mqtt连接.
+            TokenHelper tokenHelper = new TokenHelper(mTCMqttConfig.getProductId(), mTCMqttConfig.getDeviceName(), mTCMqttConfig.getDeviceSecret());
             tokenHelper.getToken(mMqttClientId, new TokenHelper.ITokenListener() {
                 @Override
                 public void onSuccessed(String userName, String password) {
-                    mQCloudMqttConfig.setMqttUserName(userName)
+                    mTCMqttConfig.setMqttUserName(userName)
                             .setMqttPassword(password);
                     getHandler().post(new Runnable() {
                         @Override
@@ -123,15 +123,15 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
     }
 
     private void mqttConnect() {
-        String mqttBrokerURL = "tcp://" + mQCloudMqttConfig.getMqttHost() + ":" + QCloudConstants.MQTT_PORT;
+        String mqttBrokerURL = "tcp://" + mTCMqttConfig.getMqttHost() + ":" + TCConstants.MQTT_PORT;
         try {
             if (mMqttClient == null) {
                 mMqttClient = new MqttAsyncClient(mqttBrokerURL, mMqttClientId, new MemoryPersistence());
             }
             QLog.d(TAG, "url = " + mqttBrokerURL + ", clientid = " + mMqttClientId);
             SSLSocketFactory socketFactory = null;
-            if (mQCloudMqttConfig.getKeyStore() != null) {
-                socketFactory = QCloudTLSSocketFactory.getSocketFactory(mQCloudMqttConfig.getKeyStore());
+            if (mTCMqttConfig.getKeyStore() != null) {
+                socketFactory = TCTLSSocketFactory.getSocketFactory(mTCMqttConfig.getKeyStore());
             }
             mMqttConnectOptions = buildMqttConnectOptions(socketFactory);
             mMqttClient.setCallback(mMqttCallback);
@@ -151,8 +151,8 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
                     onConnectFailed(e);
                     break;
             }
-        } catch (QCloudSSLSocketException e) {
-            throw new QCloudCertificateException("get socket factory exception!", e);
+        } catch (TCSSLSocketException e) {
+            throw new TCCertificateException("get socket factory exception!", e);
         }
     }
 
@@ -230,9 +230,9 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
             options.setSocketFactory(socketFactory);
         }
         options.setAutomaticReconnect(false);
-        options.setUserName(mQCloudMqttConfig.getMqttUserName());
-        options.setPassword(mQCloudMqttConfig.getMqttPassword().toCharArray());
-        options.setKeepAliveInterval(mQCloudMqttConfig.getKeepAliveSeconds());
+        options.setUserName(mTCMqttConfig.getMqttUserName());
+        options.setPassword(mTCMqttConfig.getMqttPassword().toCharArray());
+        options.setKeepAliveInterval(mTCMqttConfig.getKeepAliveSeconds());
         return options;
     }
 
@@ -409,12 +409,12 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
                 MqttUnSubscribeRequest unSubscribeRequest = (MqttUnSubscribeRequest) request;
                 mqttUnSubscribe(unSubscribeRequest.getTopic(), unSubscribeRequest.getCallback());
             } else {
-                throw new QCloudMqttClientException("invalid request type");
+                throw new TCMqttClientException("invalid request type");
             }
         }
     }
 
-    private void mqttPublish(final byte[] data, final String topic, final QCloudIotMqttQos qos, final IMqttActionCallback callback) {
+    private void mqttPublish(final byte[] data, final String topic, final TCIotMqttQos qos, final IMqttActionCallback callback) {
         MqttMessage message = new MqttMessage(data);
         message.setQos(qos.asInt());
         message.setRetained(false);
@@ -431,7 +431,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
         }
     }
 
-    private void mqttSubscribe(final String topic, final QCloudIotMqttQos qos, final IMqttActionCallback callback) {
+    private void mqttSubscribe(final String topic, final TCIotMqttQos qos, final IMqttActionCallback callback) {
         MqttActionUserContext userContext = new MqttActionUserContext()
                 .setActionType(MqttActionUserContext.ACTION_TYPE_SUBSCRIBE)
                 .setTopic(topic)
@@ -506,7 +506,7 @@ class QCloudIotMqttClient extends AbstractIotMqttClient {
      * @param listener
      * @return
      */
-    public QCloudIotMqttClient setMqttMessageListener(IMqttMessageListener listener) {
+    public TCIotMqttClient setMqttMessageListener(IMqttMessageListener listener) {
         mMqttMessageListener = listener;
         return this;
     }

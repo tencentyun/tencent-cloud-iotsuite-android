@@ -22,24 +22,24 @@ import java.util.concurrent.TimeUnit;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudIotMqttClientTest {
+public class TCIotMqttClientTest {
     private static final int MIN_RETRY_TIME_MS = 1000;
     private static final int MAX_RETRY_TIME_MS = 2000;
-    private static final String TAG = QCloudIotMqttClientTest.class.getSimpleName();
-    private QCloudIotMqttClient mQCloudIotMqttClient;
+    private static final String TAG = TCIotMqttClientTest.class.getSimpleName();
+    private TCIotMqttClient mTCIotMqttClient;
     private CountDownLatch mCountDownLatch;
     private KeyStore mKeyStore;
 
-    public QCloudIotMqttClientTest() throws IOException {
-        QCloudMqttConfig config = new QCloudMqttConfig("mqtt-m2i58z3s.ap-guangzhou.mqtt.tencentcloudmq.com", "mqtt-m2i58z3s", "test_android_1", "48bf05179b6f1be3b38c89f27c804f11")
+    public TCIotMqttClientTest() throws IOException {
+        TCMqttConfig config = new TCMqttConfig("mqtt-m2i58z3s.ap-guangzhou.mqtt.tencentcloudmq.com", "mqtt-m2i58z3s", "test_android_1", "48bf05179b6f1be3b38c89f27c804f11")
                 .setProductId("iot-6xzr8ap8")
-                .setConnectionMode(QCloudMqttConfig.QCloudMqttConnectionMode.MODE_DIRECT)
+                .setConnectionMode(TCMqttConfig.TCMqttConnectionMode.MODE_DIRECT)
                 .setMqttUserName("AKIDNgssgTw1pW2NahKR4oRt9D6ofNuGgSKG")
                 .setMqttPassword("085Nmo6yhgR/TMjSPfFWP+TEVrggjVNFtAyvZUCxp0U=")
                 .setMinRetryTimeMs(MIN_RETRY_TIME_MS)
                 .setMaxRetryTimeMs(MAX_RETRY_TIME_MS)
                 .setMaxRetryTimes(2);
-        mQCloudIotMqttClient = new QCloudIotMqttClient(config);
+        mTCIotMqttClient = new TCIotMqttClient(config);
         mCountDownLatch = new CountDownLatch(1);
         CertificateProviderTest certificateProvider = new CertificateProviderTest();
         //mKeyStore = certificateProvider.getKeyStore();
@@ -48,7 +48,7 @@ public class QCloudIotMqttClientTest {
     @Test
     public void testConstructor() {
         try {
-            new QCloudIotMqttClient(null);
+            new TCIotMqttClient(null);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalArgumentException);
@@ -58,7 +58,7 @@ public class QCloudIotMqttClientTest {
     @Test
     public void testConnect() throws IOException, InterruptedException {
 
-        mQCloudIotMqttClient.connect(new IMqttConnectStateCallback() {
+        mTCIotMqttClient.connect(new IMqttConnectStateCallback() {
             @Override
             public void onStateChanged(MqttConnectState state) {
                 Log.d(TAG, "onStateChanged: " + state);
@@ -71,7 +71,7 @@ public class QCloudIotMqttClientTest {
         Assert.assertTrue(success);
 
         try {
-            mQCloudIotMqttClient.connectInternal(null);
+            mTCIotMqttClient.connectInternal(null);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalStateException);
@@ -81,16 +81,16 @@ public class QCloudIotMqttClientTest {
     @Test
     public void testDisconnect() {
         try {
-            mQCloudIotMqttClient.disconnectInternal();
+            mTCIotMqttClient.disconnectInternal();
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalStateException);
         }
 
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
+        mTCIotMqttClient.getHandler().post(new Runnable() {
             @Override
             public void run() {
-                mQCloudIotMqttClient.disconnectInternal();
+                mTCIotMqttClient.disconnectInternal();
             }
         });
     }
@@ -99,17 +99,17 @@ public class QCloudIotMqttClientTest {
     public void testPublish() {
         final MqttPublishRequest request = new MqttPublishRequest();
         try {
-            mQCloudIotMqttClient.publishInternal(request);
+            mTCIotMqttClient.publishInternal(request);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalStateException);
         }
 
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
+        mTCIotMqttClient.getHandler().post(new Runnable() {
             @Override
             public void run() {
                 try {
-                    mQCloudIotMqttClient.publishInternal(null);
+                    mTCIotMqttClient.publishInternal(null);
                     Assert.fail();
                 } catch (Exception e) {
                     Assert.assertTrue(e instanceof IllegalArgumentException);
@@ -117,10 +117,10 @@ public class QCloudIotMqttClientTest {
             }
         });
 
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
+        mTCIotMqttClient.getHandler().post(new Runnable() {
             @Override
             public void run() {
-                mQCloudIotMqttClient.publishInternal(request);
+                mTCIotMqttClient.publishInternal(request);
             }
         });
     }
@@ -129,17 +129,17 @@ public class QCloudIotMqttClientTest {
     public void testSubcribe() {
         final MqttSubscribeRequest request = new MqttSubscribeRequest();
         try {
-            mQCloudIotMqttClient.subscribeInternal(request);
+            mTCIotMqttClient.subscribeInternal(request);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalStateException);
         }
 
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
+        mTCIotMqttClient.getHandler().post(new Runnable() {
             @Override
             public void run() {
                 try {
-                    mQCloudIotMqttClient.subscribeInternal(null);
+                    mTCIotMqttClient.subscribeInternal(null);
                     Assert.fail();
                 } catch (Exception e) {
                     Assert.assertTrue(e instanceof IllegalArgumentException);
@@ -147,10 +147,10 @@ public class QCloudIotMqttClientTest {
             }
         });
 
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
+        mTCIotMqttClient.getHandler().post(new Runnable() {
             @Override
             public void run() {
-                mQCloudIotMqttClient.subscribeInternal(request);
+                mTCIotMqttClient.subscribeInternal(request);
             }
         });
     }
@@ -159,17 +159,17 @@ public class QCloudIotMqttClientTest {
     public void testUnSubcribe() {
         final MqttUnSubscribeRequest request = new MqttUnSubscribeRequest();
         try {
-            mQCloudIotMqttClient.unSubscribeInternal(request);
+            mTCIotMqttClient.unSubscribeInternal(request);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalStateException);
         }
 
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
+        mTCIotMqttClient.getHandler().post(new Runnable() {
             @Override
             public void run() {
                 try {
-                    mQCloudIotMqttClient.unSubscribeInternal(null);
+                    mTCIotMqttClient.unSubscribeInternal(null);
                     Assert.fail();
                 } catch (Exception e) {
                     Assert.assertTrue(e instanceof IllegalArgumentException);
@@ -177,21 +177,21 @@ public class QCloudIotMqttClientTest {
             }
         });
 
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
+        mTCIotMqttClient.getHandler().post(new Runnable() {
             @Override
             public void run() {
-                mQCloudIotMqttClient.unSubscribeInternal(request);
+                mTCIotMqttClient.unSubscribeInternal(request);
             }
         });
     }
 
     private void connect() {
         mCountDownLatch = new CountDownLatch(1);
-        mQCloudIotMqttClient.getHandler().post(new Runnable() {
+        mTCIotMqttClient.getHandler().post(new Runnable() {
             @Override
             public void run() {
                 mCountDownLatch.countDown();
-                mQCloudIotMqttClient.connectInternal(null);
+                mTCIotMqttClient.connectInternal(null);
             }
         });
         try {

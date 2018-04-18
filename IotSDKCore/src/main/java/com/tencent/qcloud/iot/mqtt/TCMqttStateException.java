@@ -5,12 +5,12 @@ package com.tencent.qcloud.iot.mqtt;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudMqttStateException extends RuntimeException {
-    public QCloudMqttStateException(String message) {
+public class TCMqttStateException extends RuntimeException {
+    public TCMqttStateException(String message) {
         super(message);
     }
 
-    public QCloudMqttStateException(String message, Throwable cause) {
+    public TCMqttStateException(String message, Throwable cause) {
         super(message, cause);
     }
 }

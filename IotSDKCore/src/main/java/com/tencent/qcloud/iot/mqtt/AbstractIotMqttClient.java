@@ -102,7 +102,7 @@ public abstract class AbstractIotMqttClient {
 
     protected synchronized Handler getHandler() {
         if (mHandler == null) {
-            HandlerThread handlerThread = new HandlerThread("QCloudIotMqttClient thread");
+            HandlerThread handlerThread = new HandlerThread("TCIotMqttClient thread");
             handlerThread.start();
             mHandler = new Handler(handlerThread.getLooper());
         }

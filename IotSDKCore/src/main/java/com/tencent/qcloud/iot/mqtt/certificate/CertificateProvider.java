@@ -1,6 +1,5 @@
 package com.tencent.qcloud.iot.mqtt.certificate;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -32,13 +31,13 @@ public class CertificateProvider implements X509TrustManager {
             TrustManager[] managers = factory.getTrustManagers();
             mX509TrustManager = (X509TrustManager) managers[0];
         } catch (KeyStoreException e) {
-            throw new QCloudCertificateException("KeyStoreException", e);
+            throw new TCCertificateException("KeyStoreException", e);
         } catch (CertificateException e) {
-            throw new QCloudCertificateException("CertificateException", e);
+            throw new TCCertificateException("CertificateException", e);
         } catch (NoSuchAlgorithmException e) {
-            throw new QCloudCertificateException("NoSuchAlgorithmException", e);
+            throw new TCCertificateException("NoSuchAlgorithmException", e);
         } catch (IOException e) {
-            throw new QCloudCertificateException("IOException", e);
+            throw new TCCertificateException("IOException", e);
         }
     }
 

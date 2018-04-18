@@ -5,12 +5,12 @@ package com.tencent.qcloud.iot.mqtt.certificate;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudSSLSocketException extends Exception {
-    public QCloudSSLSocketException(String message) {
+public class TCSSLSocketException extends Exception {
+    public TCSSLSocketException(String message) {
         super(message);
     }
 
-    public QCloudSSLSocketException(String message, Throwable cause) {
+    public TCSSLSocketException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -1,1 +1,1 @@
-include ':IotSDKCore', ':DeviceSample'
+include ':IotSDKCore', 'IotSDKDevice', ':DeviceSample'

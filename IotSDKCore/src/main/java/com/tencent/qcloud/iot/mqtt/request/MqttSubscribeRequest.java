@@ -3,7 +3,7 @@ package com.tencent.qcloud.iot.mqtt.request;
 import android.text.TextUtils;
 
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
-import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
+import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 
 /**
  * Created by rongerwu on 2018/1/12.
@@ -12,7 +12,7 @@ import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
 
 public class MqttSubscribeRequest extends BaseMqttRequest {
     private String mTopic = "topic";
-    private QCloudIotMqttQos mQos = QCloudIotMqttQos.QOS0;
+    private TCIotMqttQos mQos = TCIotMqttQos.QOS0;
     private IMqttActionCallback mCallback;
 
     public String getTopic() {
@@ -27,11 +27,11 @@ public class MqttSubscribeRequest extends BaseMqttRequest {
         return this;
     }
 
-    public QCloudIotMqttQos getQos() {
+    public TCIotMqttQos getQos() {
         return mQos;
     }
 
-    public MqttSubscribeRequest setQos(QCloudIotMqttQos qos) {
+    public MqttSubscribeRequest setQos(TCIotMqttQos qos) {
         mQos = qos;
         return this;
     }

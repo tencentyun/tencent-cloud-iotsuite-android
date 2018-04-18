@@ -1,10 +1,9 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
     defaultConfig {
-        applicationId "com.tencent.qcloud.iot.sample"
         minSdkVersion 18
         targetSdkVersion 25
         versionCode 20000
@@ -20,16 +19,25 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    sourceSets {
+        androidTest {
+            assets.srcDirs = ['src/main/assets', 'src/androidTest/assets/', 'src/debug/assets/']
+        }
+    }
+
 }
 
 dependencies {
-    //implementation project(path: ':IotSDKDevice')
-    implementation 'com.tencent.qcloud:iot-android-sdk-device:2.0.0'
+    //compile project(path: ':IotSDKCore')
+    compile 'com.tencent.qcloud:iot-android-sdk-core:2.0.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
+
+project.extensions.add('artifactId', 'iot-android-sdk-device')
+project.extensions.add('artifactDesc', 'the tencent cloud iot suite device android sdk')
+

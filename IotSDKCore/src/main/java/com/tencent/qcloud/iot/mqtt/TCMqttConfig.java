@@ -11,7 +11,7 @@ import java.security.KeyStore;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudMqttConfig {
+public class TCMqttConfig {
 
     private static final int DEFAULT_KEEP_ALIVE_SECONDS = 10;
 
@@ -56,7 +56,7 @@ public class QCloudMqttConfig {
     /**
      * 连接模式.分为直连模式和token模式
      */
-    private QCloudMqttConnectionMode mConnectionMode = QCloudMqttConnectionMode.MODE_DIRECT;
+    private TCMqttConnectionMode mConnectionMode = TCMqttConnectionMode.MODE_DIRECT;
 
     private KeyStore mKeyStore;
 
@@ -85,7 +85,7 @@ public class QCloudMqttConfig {
      */
     private int mKeepAliveSeconds = DEFAULT_KEEP_ALIVE_SECONDS;
 
-    public QCloudMqttConfig(String mqttHost, String productKey, String productId) {
+    public TCMqttConfig(String mqttHost, String productKey, String productId) {
         if (TextUtils.isEmpty(mqttHost)) {
             throw new IllegalArgumentException("mqttHost is empty");
         }
@@ -108,7 +108,7 @@ public class QCloudMqttConfig {
         return mDeviceName;
     }
 
-    public QCloudMqttConfig setDeviceName(String deviceName) {
+    public TCMqttConfig setDeviceName(String deviceName) {
         if (TextUtils.isEmpty(deviceName)) {
             throw new IllegalArgumentException("deviceName is empty");
         }
@@ -120,7 +120,7 @@ public class QCloudMqttConfig {
         return mDeviceSecret;
     }
 
-    public QCloudMqttConfig setDeviceSecret(String deviceSecret) {
+    public TCMqttConfig setDeviceSecret(String deviceSecret) {
         if (TextUtils.isEmpty(deviceSecret)) {
             throw new IllegalArgumentException("deviceSecret is empty");
         }
@@ -136,7 +136,7 @@ public class QCloudMqttConfig {
         return mProductId;
     }
 
-    public QCloudMqttConfig setMqttUserName(String mqttUserName) {
+    public TCMqttConfig setMqttUserName(String mqttUserName) {
         if (TextUtils.isEmpty(mqttUserName)) {
             throw new IllegalArgumentException("mqttUserName is empty");
         }
@@ -148,7 +148,7 @@ public class QCloudMqttConfig {
         return mMqttPassword;
     }
 
-    public QCloudMqttConfig setMqttPassword(String mqttPassword) {
+    public TCMqttConfig setMqttPassword(String mqttPassword) {
         if (TextUtils.isEmpty(mqttPassword)) {
             throw new IllegalArgumentException("mqttPassword is empty");
         }
@@ -156,11 +156,11 @@ public class QCloudMqttConfig {
         return this;
     }
 
-    public QCloudMqttConnectionMode getConnectionMode() {
+    public TCMqttConnectionMode getConnectionMode() {
         return mConnectionMode;
     }
 
-    public QCloudMqttConfig setConnectionMode(QCloudMqttConnectionMode connectionMode) {
+    public TCMqttConfig setConnectionMode(TCMqttConnectionMode connectionMode) {
         if (connectionMode == null) {
             throw new IllegalArgumentException("connectionMode is null");
         }
@@ -176,7 +176,7 @@ public class QCloudMqttConfig {
         return mKeyStore;
     }
 
-    public QCloudMqttConfig setKeyStore(KeyStore keyStore) {
+    public TCMqttConfig setKeyStore(KeyStore keyStore) {
         mKeyStore = keyStore;
         return this;
     }
@@ -185,7 +185,7 @@ public class QCloudMqttConfig {
         return mAutoReconnect;
     }
 
-    public QCloudMqttConfig setAutoReconnect(boolean autoReconnect) {
+    public TCMqttConfig setAutoReconnect(boolean autoReconnect) {
         mAutoReconnect = autoReconnect;
         return this;
     }
@@ -194,7 +194,7 @@ public class QCloudMqttConfig {
         return mMinRetryTimeMs;
     }
 
-    public QCloudMqttConfig setMinRetryTimeMs(int minRetryTimeMs) {
+    public TCMqttConfig setMinRetryTimeMs(int minRetryTimeMs) {
         mMinRetryTimeMs = minRetryTimeMs;
         return this;
     }
@@ -203,7 +203,7 @@ public class QCloudMqttConfig {
         return mMaxRetryTimeMs;
     }
 
-    public QCloudMqttConfig setMaxRetryTimeMs(int maxRetryTimeMs) {
+    public TCMqttConfig setMaxRetryTimeMs(int maxRetryTimeMs) {
         mMaxRetryTimeMs = maxRetryTimeMs;
         return this;
     }
@@ -212,7 +212,7 @@ public class QCloudMqttConfig {
         return mMaxRetryTimes;
     }
 
-    public QCloudMqttConfig setMaxRetryTimes(int maxRetryTimes) {
+    public TCMqttConfig setMaxRetryTimes(int maxRetryTimes) {
         mMaxRetryTimes = maxRetryTimes;
         return this;
     }
@@ -221,12 +221,12 @@ public class QCloudMqttConfig {
         return mKeepAliveSeconds;
     }
 
-    public QCloudMqttConfig setKeepAliveSeconds(int keepAliveSeconds) {
+    public TCMqttConfig setKeepAliveSeconds(int keepAliveSeconds) {
         mKeepAliveSeconds = keepAliveSeconds;
         return this;
     }
 
-    public enum QCloudMqttConnectionMode {
+    public enum TCMqttConnectionMode {
         MODE_DIRECT,
         MODE_TOKEN,
     }

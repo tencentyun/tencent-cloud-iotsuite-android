@@ -1,6 +1,6 @@
 package com.tencent.qcloud.iot.sample.model;
 
-import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
+import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 
 /**
  * Created by rongerwu on 2018/1/15.
@@ -9,7 +9,7 @@ import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
 
 public class Subscribe {
     private String mTopic;
-    private QCloudIotMqttQos mQos;
+    private TCIotMqttQos mQos;
 
     public String getTopic() {
         return mTopic;
@@ -20,11 +20,11 @@ public class Subscribe {
         return this;
     }
 
-    public QCloudIotMqttQos getQos() {
+    public TCIotMqttQos getQos() {
         return mQos;
     }
 
-    public Subscribe setQos(QCloudIotMqttQos qos) {
+    public Subscribe setQos(TCIotMqttQos qos) {
         mQos = qos;
         return this;
     }

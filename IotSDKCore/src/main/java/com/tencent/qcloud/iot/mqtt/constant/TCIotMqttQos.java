@@ -5,7 +5,7 @@ package com.tencent.qcloud.iot.mqtt.constant;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public enum QCloudIotMqttQos {
+public enum TCIotMqttQos {
     QOS0,
     QOS1;
 

@@ -5,16 +5,16 @@ package com.tencent.qcloud.iot.mqtt.certificate;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudCertificateException extends RuntimeException {
-    public QCloudCertificateException(String message) {
+public class TCCertificateException extends RuntimeException {
+    public TCCertificateException(String message) {
         super(message);
     }
 
-    public QCloudCertificateException(Throwable cause) {
+    public TCCertificateException(Throwable cause) {
         super(cause);
     }
 
-    public QCloudCertificateException(String message, Throwable cause) {
+    public TCCertificateException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -2,9 +2,9 @@ package com.tencent.qcloud.iot.sample.qcloud;
 
 import android.util.Log;
 
-import com.tencent.qcloud.iot.mqtt.QCloudIotMqttService;
-import com.tencent.qcloud.iot.mqtt.QCloudMqttConfig;
-import com.tencent.qcloud.iot.mqtt.QCloudMqttConfig.QCloudMqttConnectionMode;
+import com.tencent.qcloud.iot.device.TCIotDeviceService;
+import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
+import com.tencent.qcloud.iot.mqtt.TCMqttConfig.TCMqttConnectionMode;
 import com.tencent.qcloud.iot.mqtt.shadow.IDataEventListener;
 
 import org.json.JSONObject;
@@ -18,32 +18,36 @@ public class DeviceDataManager {
     private static final String TAG = DeviceDataManager.class.getSimpleName();
     private JsonFileData mJsonFileData;
     private JsonFileData.DataTemplate mDataTemplate;
-    private QCloudIotMqttService mQCloudIotMqttService;
+    private TCIotDeviceService mTCIotDeviceService;
 
     private IDataEventListener mDataEventListener = new IDataEventListener() {
         @Override
         public void onControl(String key, Object value, boolean diff) {
-            mDataTemplate.onControl(key, value, diff);
+            try {
+                mDataTemplate.onControl(key, value, diff);
+            } catch (ClassCastException e) {
+                Log.w(TAG, "onControl", e);
+            }
         }
     };
 
     private JsonFileData.ILocalDataListener mLocalDataListener = new JsonFileData.ILocalDataListener() {
         @Override
         public void onLocalDataChange(JSONObject localData) {
-            if (mQCloudIotMqttService == null) {
-                Log.e(TAG, "onDataChange， mQCloudIotMqttService is null");
+            if (mTCIotDeviceService == null) {
+                Log.e(TAG, "onDataChange， mTCIotDeviceService is null");
                 return;
             }
-            mQCloudIotMqttService.onLocalDataChange(localData);
+            mTCIotDeviceService.onLocalDataChange(localData);
         }
 
         @Override
         public void onUserChangeData(JSONObject userDesired, boolean commit) {
-            if (mQCloudIotMqttService == null) {
-                Log.e(TAG, "onUserChangeData， mQCloudIotMqttService is null");
+            if (mTCIotDeviceService == null) {
+                Log.e(TAG, "onUserChangeData， mTCIotDeviceService is null");
                 return;
             }
-            mQCloudIotMqttService.onUserChangeData(userDesired, commit);
+            mTCIotDeviceService.onUserChangeData(userDesired, commit);
         }
     };
 
@@ -54,44 +58,44 @@ public class DeviceDataManager {
         mDataTemplate.setLocalDataListener(mLocalDataListener);
     }
 
-    public QCloudMqttConfig genQCloudMqttConfig() {
-        QCloudMqttConfig config = new QCloudMqttConfig(mJsonFileData.getHost(), mJsonFileData.getProductKey(), mJsonFileData.getProductId());
-        QCloudMqttConnectionMode connectionMode = getConnectionMode();
+    public TCMqttConfig genTCMqttConfig() {
+        TCMqttConfig config = new TCMqttConfig(mJsonFileData.getHost(), mJsonFileData.getProductKey(), mJsonFileData.getProductId());
+        TCMqttConnectionMode connectionMode = getConnectionMode();
         config.setConnectionMode(connectionMode);
-        if (connectionMode == QCloudMqttConnectionMode.MODE_DIRECT) {
+        if (connectionMode == TCMqttConnectionMode.MODE_DIRECT) {
             config.setMqttUserName(mJsonFileData.getUserName())
                     .setMqttPassword(mJsonFileData.getPassword());
         }
         return config;
     }
 
-    public QCloudMqttConnectionMode getConnectionMode() {
+    public TCMqttConnectionMode getConnectionMode() {
         int authType = mJsonFileData.getAuthType();
         if (authType == JsonFileData.AUTH_TYPE_DIRECT) {
-            return QCloudMqttConnectionMode.MODE_DIRECT;
+            return TCMqttConnectionMode.MODE_DIRECT;
         } else if (authType == JsonFileData.AUTH_TYPE_TOKEN) {
-            return QCloudMqttConnectionMode.MODE_TOKEN;
+            return TCMqttConnectionMode.MODE_TOKEN;
         } else {
             throw new IllegalStateException("illegal auth type = " + authType);
         }
     }
 
-    public void setQCloudIotMqttService(QCloudIotMqttService QCloudIotMqttService) {
-        mQCloudIotMqttService = QCloudIotMqttService;
-        onSetQCloudIotMqttService();
+    public void setTCIotDeviceService(TCIotDeviceService TCIotDeviceService) {
+        mTCIotDeviceService = TCIotDeviceService;
+        onSetTCIotDeviceService();
     }
 
     public JsonFileData getJsonFileData() {
         return mJsonFileData;
     }
 
-    private void onSetQCloudIotMqttService() {
-        if (mQCloudIotMqttService == null) {
+    private void onSetTCIotDeviceService() {
+        if (mTCIotDeviceService == null) {
             return;
         }
         //监听来自服务端的控制消息
-        mQCloudIotMqttService.setDataEventListener(mDataEventListener);
-        mQCloudIotMqttService.onLocalDataChange(mDataTemplate.toJson());
+        mTCIotDeviceService.setDataEventListener(mDataEventListener);
+        mTCIotDeviceService.onLocalDataChange(mDataTemplate.toJson());
     }
 
     public void setDataControlListener(JsonFileData.IDataControlListener dataControlListener) {

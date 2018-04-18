@@ -16,10 +16,10 @@ import javax.net.ssl.X509TrustManager;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudTLSSocketFactory {
+public class TCTLSSocketFactory {
     private static final String TLS_V_1_2 = "TLSv1.2";
 
-    public static SSLSocketFactory getSocketFactory(KeyStore keyStore) throws QCloudSSLSocketException {
+    public static SSLSocketFactory getSocketFactory(KeyStore keyStore) throws TCSSLSocketException {
         try {
             TrustManagerFactory factory = TrustManagerFactory.getInstance("X509");
             factory.init(keyStore);
@@ -31,11 +31,11 @@ public class QCloudTLSSocketFactory {
             //context.init(null, managers, null);
             return context.getSocketFactory();
         } catch (NoSuchAlgorithmException e) {
-            throw new QCloudSSLSocketException("NoSuchAlgorithmException", e);
+            throw new TCSSLSocketException("NoSuchAlgorithmException", e);
         } catch (KeyStoreException e) {
-            throw new QCloudSSLSocketException("KeyStoreException", e);
+            throw new TCSSLSocketException("KeyStoreException", e);
         } catch (KeyManagementException e) {
-            throw new QCloudSSLSocketException("KeyManagementException", e);
+            throw new TCSSLSocketException("KeyManagementException", e);
         }
 
     }

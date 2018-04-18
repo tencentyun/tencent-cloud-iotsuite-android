@@ -5,13 +5,13 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.tencent.qcloud.iot.common.QLog;
-import com.tencent.qcloud.iot.mqtt.QCloudIotMqttService;
-import com.tencent.qcloud.iot.mqtt.QCloudMqttConfig;
+import com.tencent.qcloud.iot.device.TCIotDeviceService;
+import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
 import com.tencent.qcloud.iot.mqtt.constant.MqttConnectState;
-import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
+import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
@@ -31,8 +31,8 @@ import java.util.Map;
 public class Connection implements Parcelable {
 
     private static final String TAG = Connection.class.getSimpleName();
-    private QCloudIotMqttService mQCloudIotMqttService;
-    private QCloudMqttConfig mQCloudMqttConfig;
+    private TCIotDeviceService mTCIotDeviceService;
+    private TCMqttConfig mTCMqttConfig;
     private Map<String, Subscribe> mSubscribesMap;
 
     /**
@@ -89,27 +89,27 @@ public class Connection implements Parcelable {
      * @param deviceSecret 直连模式下可以为null, token模式下不可以为null.
      */
     public void connect(String deviceName, String deviceSecret) {
-        if (mQCloudIotMqttService != null) {
-            mQCloudIotMqttService.disconnect();
+        if (mTCIotDeviceService != null) {
+            mTCIotDeviceService.disconnect();
         }
-        mQCloudMqttConfig = mDeviceDataManager.genQCloudMqttConfig();
-        mQCloudMqttConfig.setDeviceName(deviceName);
+        mTCMqttConfig = mDeviceDataManager.genTCMqttConfig();
+        mTCMqttConfig.setDeviceName(deviceName);
         if (deviceSecret != null) {
-            mQCloudMqttConfig.setDeviceSecret(deviceSecret);
+            mTCMqttConfig.setDeviceSecret(deviceSecret);
         }
         //设置自动重连参数
-        mQCloudMqttConfig.setAutoReconnect(true)
+        mTCMqttConfig.setAutoReconnect(true)
                 .setMinRetryTimeMs(1000)
                 .setMaxRetryTimeMs(20000)
                 .setMaxRetryTimes(5000);
 
-        connect(mQCloudMqttConfig);
+        connect(mTCMqttConfig);
     }
 
-    private void connect(QCloudMqttConfig config) {
-        mQCloudIotMqttService = new QCloudIotMqttService(config);
+    private void connect(TCMqttConfig config) {
+        mTCIotDeviceService = new TCIotDeviceService(config);
         //建立mqtt连接并监听连接结果
-        mQCloudIotMqttService.connect(new IMqttConnectStateCallback() {
+        mTCIotDeviceService.connect(new IMqttConnectStateCallback() {
             @Override
             public void onStateChanged(MqttConnectState state) {
                 notifyMessage("onStateChanged: " + state);
@@ -129,18 +129,18 @@ public class Connection implements Parcelable {
             }
         });
         //设置监听来自已订阅topic的消息
-        mQCloudIotMqttService.setMqttMessageListener(mMqttMessageListener);
-        mDeviceDataManager.setQCloudIotMqttService(mQCloudIotMqttService);
+        mTCIotDeviceService.setMqttMessageListener(mMqttMessageListener);
+        mDeviceDataManager.setTCIotDeviceService(mTCIotDeviceService);
     }
 
     /**
      * 断开mqtt连接
      */
     public void disconnect() {
-        if (mQCloudIotMqttService == null) {
+        if (mTCIotDeviceService == null) {
             return;
         }
-        mQCloudIotMqttService.disconnect();
+        mTCIotDeviceService.disconnect();
         mSubscribesMap.clear();
         onSubscribeStateChanged();
     }
@@ -152,15 +152,15 @@ public class Connection implements Parcelable {
      * @param msg
      */
     public void publish(String topic, String msg) {
-        if (mQCloudIotMqttService == null || mQCloudMqttConfig == null) {
+        if (mTCIotDeviceService == null || mTCMqttConfig == null) {
             return;
         }
         //根据规则拼接得到topic
-        final String fullTopic = mQCloudMqttConfig.getProductId() + "/" + mQCloudMqttConfig.getDeviceName() + "/" + topic;
+        final String fullTopic = mTCMqttConfig.getProductId() + "/" + mTCMqttConfig.getDeviceName() + "/" + topic;
         //封装publish请求
         MqttPublishRequest request = new MqttPublishRequest()
                 .setTopic(fullTopic)
-                .setQos(QCloudIotMqttQos.QOS0)
+                .setQos(TCIotMqttQos.QOS0)
                 .setMsg(msg)
                 .setCallback(new IMqttActionCallback() {
                     @Override
@@ -173,7 +173,7 @@ public class Connection implements Parcelable {
                         notifyMessage("publish failed");
                     }
                 });
-        mQCloudIotMqttService.publish(request);
+        mTCIotDeviceService.publish(request);
     }
 
     /**
@@ -182,15 +182,15 @@ public class Connection implements Parcelable {
      * @param topic
      */
     public void subscribe(final String topic) {
-        if (mQCloudIotMqttService == null || mQCloudMqttConfig == null) {
+        if (mTCIotDeviceService == null || mTCMqttConfig == null) {
             return;
         }
         //根据规则拼接得到topic
-        final String fullTopic = mQCloudMqttConfig.getProductId() + "/" + mQCloudMqttConfig.getDeviceName() + "/" + topic;
+        final String fullTopic = mTCMqttConfig.getProductId() + "/" + mTCMqttConfig.getDeviceName() + "/" + topic;
         if (!mSubscribesMap.containsKey(fullTopic)) {
             Subscribe newSubscribe = new Subscribe()
                     .setTopic(fullTopic)
-                    .setQos(QCloudIotMqttQos.QOS0)
+                    .setQos(TCIotMqttQos.QOS0)
                     .setSuccessed(false);
             mSubscribesMap.put(fullTopic, newSubscribe);
         }
@@ -225,7 +225,7 @@ public class Connection implements Parcelable {
                         onSubscribeStateChanged();
                     }
                 });
-        mQCloudIotMqttService.subscribe(request);
+        mTCIotDeviceService.subscribe(request);
     }
 
     /**
@@ -234,7 +234,7 @@ public class Connection implements Parcelable {
      * @param topic
      */
     public void unsubscribe(final String topic) {
-        if (mQCloudIotMqttService == null) {
+        if (mTCIotDeviceService == null) {
             return;
         }
         mSubscribesMap.remove(topic);
@@ -251,7 +251,7 @@ public class Connection implements Parcelable {
                         notifyMessage("unsubscribe failed, topic = " + topic);
                     }
                 });
-        mQCloudIotMqttService.unSubscribe(request);
+        mTCIotDeviceService.unSubscribe(request);
     }
 
     private IMqttMessageListener mMqttMessageListener = new IMqttMessageListener() {

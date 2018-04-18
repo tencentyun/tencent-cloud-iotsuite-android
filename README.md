@@ -1,7 +1,7 @@
 
 ## 介绍
 
-IotSDKCore是腾讯云iotsuite的设备端SDK，DeviceSample是设备端的Demo。
+IotSDKDevice是腾讯云iotsuite的设备端SDK，DeviceSample是设备端的Demo。
 
 ## SDK嵌入说明
 
@@ -15,17 +15,17 @@ IotSDKCore是腾讯云iotsuite的设备端SDK，DeviceSample是设备端的Demo�
 
 1、直接依赖jcenter上的库（建议）
 
-    implementation 'com.tencent.qcloud:iot-android-sdk-core:2.0.0'
+    implementation 'com.tencent.qcloud:iot-android-sdk-device:2.0.0'
 
 2、下载SDK，然后本地依赖
 
-    implementation project(path: ':IotSDKCore')
+    implementation project(path: ':IotSDKDevice')
 
 #### 注意事项
 
-用户在自己的工程中嵌入iotsuite SDK，DeviceSample中com.tencent.qcloud.iot.sample.qcloud包里面的文件都需要移植过去。
+用户在自己的工程中嵌入IotSDKDevice，DeviceSample中com.tencent.qcloud.iot.sample.qcloud包里面的文件都需要移植过去。
 
-DeviceSample中Connection.java封装了对iotsuite SDK的调用，以及对com.tencent.qcloud.iot.sample.qcloud包内类的调用，直接基于Connection.java做二次开发会更方便。
+DeviceSample中Connection.java封装了对IotSDKDevice的调用，以及对com.tencent.qcloud.iot.sample.qcloud包内类的调用，直接基于Connection.java做二次开发会更方便。
 
 ## 根据设备信息修改Demo
 
@@ -119,7 +119,7 @@ JsonFileData.java中包含了产品id、key等信息，可以通过调用get方�
 
 ## SDK说明
 
-腾讯云iotsuite Android SDK提供mqtt connect、disconnec、subscribe、unsubscribe、publish 能力，另外提供失败重连的参数配置，相应的调用示例可以参见Demo中的Connection.java。
+腾讯云IotSDKDevice提供mqtt connect、disconnec、subscribe、unsubscribe、publish 能力，另外提供失败重连的参数配置，相应的调用示例可以参见Demo中的Connection.java。
 
 ### mqtt部分
 

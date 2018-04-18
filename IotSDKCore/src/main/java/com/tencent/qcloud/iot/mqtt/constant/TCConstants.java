@@ -5,7 +5,7 @@ package com.tencent.qcloud.iot.mqtt.constant;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudConstants {
+public class TCConstants {
 
     /**
      * mqtt连接的端口

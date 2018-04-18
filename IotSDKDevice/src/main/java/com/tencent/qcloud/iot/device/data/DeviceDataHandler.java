@@ -1,8 +1,10 @@
-package com.tencent.qcloud.iot.mqtt.shadow;
+package com.tencent.qcloud.iot.device.data;
 
 import android.support.annotation.NonNull;
 
 import com.tencent.qcloud.iot.common.QLog;
+import com.tencent.qcloud.iot.mqtt.shadow.IDataEventListener;
+import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,8 +24,8 @@ import java.util.Iterator;
  * 3、上线之后get到的desired，与mCachedDesired进行比较，只对不同的字段作处理，这样就不会重复执行之前已经执行过的desired了。（从服务端收到的control命令里面带的desired另外考虑，不与mCachedDesired作比较）
  * 4、用户直接操作本地数据，效果类似于从服务端收到desired，因此相应更新mCachedDesired
  */
-public class DeviceDataProcessor {
-    private static final String TAG = DeviceDataProcessor.class.getSimpleName();
+public class DeviceDataHandler {
+    private static final String TAG = DeviceDataHandler.class.getSimpleName();
     private ShadowManager mShadowManager;
     private JSONObject mCachedDesired = new JSONObject();
     private JSONObject mUserDesiredToReport = new JSONObject();
@@ -33,7 +35,7 @@ public class DeviceDataProcessor {
     private JSONObject mLocalDeviceData = new JSONObject();
     private IDataEventListener mDataEventListener;
 
-    public DeviceDataProcessor(ShadowManager shadowManager) {
+    public DeviceDataHandler(ShadowManager shadowManager) {
         mShadowManager = shadowManager;
     }
 
@@ -42,13 +44,13 @@ public class DeviceDataProcessor {
      * @param desired
      * @throws JSONException
      */
-    public void processDesiredForInit(JSONObject desired) throws JSONException {
+    public void handleDesiredForInit(JSONObject desired) throws JSONException {
         if (desired == null) {
-            throw new IllegalArgumentException("processDesiredForInit error");
+            throw new IllegalArgumentException("handleDesiredForInit error");
         }
         JSONObject diffDesired = getDiffDesired(mCachedDesired, desired);
         if (desired.length() > 0) {
-            processDeisredForControl(diffDesired);
+            handleDeisredForControl(diffDesired);
         }
     }
 
@@ -57,9 +59,9 @@ public class DeviceDataProcessor {
      * @param desired
      * @throws JSONException
      */
-    public void processDeisredForControl(JSONObject desired) throws JSONException {
+    public void handleDeisredForControl(JSONObject desired) throws JSONException {
         if (desired == null) {
-            throw new IllegalArgumentException("processDeisredForControl error");
+            throw new IllegalArgumentException("handleDeisredForControl error");
         }
         mergeDesired(mCachedDesired, desired);
 
@@ -69,7 +71,7 @@ public class DeviceDataProcessor {
         while (desiredKeys.hasNext()) {
             String key = desiredKeys.next();
             if (!localDeviceData.has(key)) {
-                QLog.w(TAG, "processDeisredForControl, not found key = " + key + " in local device data");
+                QLog.w(TAG, "handleDeisredForControl, not found key = " + key + " in local device data");
                 continue;
             }
             boolean diff = !desired.get(key).equals(localDeviceData.get(key));
@@ -122,7 +124,7 @@ public class DeviceDataProcessor {
         }
     }
 
-    public DeviceDataProcessor setDataEventListener(IDataEventListener dataEventListener) {
+    public DeviceDataHandler setDataEventListener(IDataEventListener dataEventListener) {
         mDataEventListener = dataEventListener;
         return this;
     }

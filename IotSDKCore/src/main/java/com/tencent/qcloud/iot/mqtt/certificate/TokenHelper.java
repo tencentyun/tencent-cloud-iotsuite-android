@@ -5,8 +5,8 @@ import android.text.TextUtils;
 import android.util.Base64;
 
 import com.tencent.qcloud.iot.common.QLog;
-import com.tencent.qcloud.iot.mqtt.QCloudMqttClientException;
-import com.tencent.qcloud.iot.mqtt.constant.QCloudConstants;
+import com.tencent.qcloud.iot.mqtt.TCMqttClientException;
+import com.tencent.qcloud.iot.mqtt.constant.TCConstants;
 import com.tencent.qcloud.iot.mqtt.http.AsyncHttpURLConnection;
 import com.tencent.qcloud.iot.utils.StringUtil;
 
@@ -53,7 +53,7 @@ public class TokenHelper {
             throw new IllegalArgumentException("clientId is null");
         }
         //先跟服务器同步时间
-        AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, QCloudConstants.TIMESTAMP_URL, null,
+        AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, TCConstants.TIMESTAMP_URL, null,
                 new AsyncHttpURLConnection.AsyncHttpEvents() {
             @Override
             public void onHttpError(String errorMessage) {
@@ -101,7 +101,7 @@ public class TokenHelper {
                 try {
                     JSONObject responseJson = new JSONObject(response);
                     int code = responseJson.getInt("returnCode");
-                    if (code != QCloudConstants.TOKEN_RETURN_CODE_SUCCESS) {
+                    if (code != TCConstants.TOKEN_RETURN_CODE_SUCCESS) {
                         if (listener != null) {
                             listener.onFailed(response);
                         }
@@ -136,7 +136,7 @@ public class TokenHelper {
         paramMap.put("timestamp", timestamp);
         Set<String> keySet = paramMap.keySet();
 
-        Uri.Builder builder = Uri.parse(QCloudConstants.TOKEN_URL).buildUpon();
+        Uri.Builder builder = Uri.parse(TCConstants.TOKEN_URL).buildUpon();
         for (String key : keySet) {
             builder.appendQueryParameter(key, paramMap.get(key));
         }
@@ -175,9 +175,9 @@ public class TokenHelper {
             return byteArray;
 
         } catch (NoSuchAlgorithmException e) {
-            throw new QCloudMqttClientException("hash hmac error", e);
+            throw new TCMqttClientException("hash hmac error", e);
         } catch (InvalidKeyException e) {
-            throw new QCloudMqttClientException("hash hmac error", e);
+            throw new TCMqttClientException("hash hmac error", e);
         }
     }
 

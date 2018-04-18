@@ -1,11 +1,15 @@
-package com.tencent.qcloud.iot.mqtt;
+package com.tencent.qcloud.iot.device;
 
 import com.tencent.qcloud.iot.common.QLog;
+import com.tencent.qcloud.iot.device.data.DeviceDataHandler;
+import com.tencent.qcloud.iot.device.data.ShadowHandler;
+import com.tencent.qcloud.iot.mqtt.TCIotMqttClient;
+import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
 import com.tencent.qcloud.iot.mqtt.constant.MqttConnectState;
-import com.tencent.qcloud.iot.mqtt.constant.QCloudIotMqttQos;
+import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
@@ -17,24 +21,28 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by rongerwu on 2018/1/30.
+ * Created by rongerwu on 2018/4/18.
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class QCloudIotMqttService {
-    private static final String TAG = QCloudIotMqttService.class.getSimpleName();
-    private QCloudIotMqttClient mQCloudIotMqttClient;
+public class TCIotDeviceService {
+    private static final String TAG = TCIotDeviceService.class.getSimpleName();
+    private TCIotMqttClient mTCIotMqttClient;
     private ShadowManager mShadowManager;
     private ShadowTopicHelper mShadowTopicHelper;
     private IMqttMessageListener mMqttMessageListener;
+    private ShadowHandler mShadowHandler;
+    private DeviceDataHandler mDeviceDataHandler;
 
-    public QCloudIotMqttService(QCloudMqttConfig config) {
+    public TCIotDeviceService(TCMqttConfig config) {
         if (config == null) {
             throw new IllegalArgumentException("config cannot be null!");
         }
-        mQCloudIotMqttClient = new QCloudIotMqttClient(config);
+        mTCIotMqttClient = new TCIotMqttClient(config);
         mShadowTopicHelper = new ShadowTopicHelper(config.getProductId(), config.getDeviceName());
-        mShadowManager = ShadowManager.getInstance(this, mShadowTopicHelper);
+        mShadowManager = ShadowManager.getInstance(mTCIotMqttClient, mShadowTopicHelper);
+        mDeviceDataHandler = new DeviceDataHandler(mShadowManager);
+        mShadowHandler = new ShadowHandler(mDeviceDataHandler);
     }
 
     public void setMqttMessageListener(IMqttMessageListener mqttMessageListener) {
@@ -47,7 +55,7 @@ public class QCloudIotMqttService {
      * @param connectStateCallback 连接状态回调
      */
     public void connect(final IMqttConnectStateCallback connectStateCallback) {
-        mQCloudIotMqttClient.connect(new IMqttConnectStateCallback() {
+        mTCIotMqttClient.connect(new IMqttConnectStateCallback() {
             @Override
             public void onStateChanged(MqttConnectState state) {
                 if (state == MqttConnectState.CONNECTED) {
@@ -64,12 +72,12 @@ public class QCloudIotMqttService {
             }
         });
 
-        mQCloudIotMqttClient.setMqttMessageListener(new IMqttMessageListener() {
+        mTCIotMqttClient.setMqttMessageListener(new IMqttMessageListener() {
             @Override
             public void onMessageArrived(String topic, String message) {
                 //影子消息在内部处理
                 if (topic.equals(mShadowTopicHelper.getGetTopic())) {
-                    onShadowMessageArrived(message);
+                    mShadowHandler.parseShadowMessage(message);
                 } else {
                     if (mMqttMessageListener != null) {
                         mMqttMessageListener.onMessageArrived(topic, message);
@@ -84,7 +92,7 @@ public class QCloudIotMqttService {
      * 断开mqtt连接
      */
     public void disconnect() {
-        mQCloudIotMqttClient.disconnect();
+        mTCIotMqttClient.disconnect();
     }
 
     /**
@@ -93,7 +101,7 @@ public class QCloudIotMqttService {
      * @param request 请求
      */
     public void publish(final MqttPublishRequest request) {
-        mQCloudIotMqttClient.publish(request);
+        mTCIotMqttClient.publish(request);
     }
 
     /**
@@ -102,7 +110,7 @@ public class QCloudIotMqttService {
      * @param request 请求
      */
     public void subscribe(final MqttSubscribeRequest request) {
-        mQCloudIotMqttClient.subscribe(request);
+        mTCIotMqttClient.subscribe(request);
     }
 
     /**
@@ -111,11 +119,7 @@ public class QCloudIotMqttService {
      * @param request 请求
      */
     public void unSubscribe(final MqttUnSubscribeRequest request) {
-        mQCloudIotMqttClient.unSubscribe(request);
-    }
-
-    private void onShadowMessageArrived(String message) {
-        mShadowManager.parseShadowMessage(message);
+        mTCIotMqttClient.unSubscribe(request);
     }
 
     /**
@@ -124,7 +128,7 @@ public class QCloudIotMqttService {
     private void subscribeShadowMessage() {
         MqttSubscribeRequest request = new MqttSubscribeRequest()
                 .setTopic(mShadowTopicHelper.getGetTopic())
-                .setQos(QCloudIotMqttQos.QOS1)
+                .setQos(TCIotMqttQos.QOS1)
                 .setCallback(new IMqttActionCallback() {
                     @Override
                     public void onSuccess() {
@@ -140,18 +144,23 @@ public class QCloudIotMqttService {
     }
 
     public void onLocalDataChange(JSONObject localDeviceData) {
-        mShadowManager.onLocalDataChange(localDeviceData);
+        mDeviceDataHandler.updateLocalDeviceData(localDeviceData);
     }
 
     public void onUserChangeData(JSONObject userDesired, boolean commit) {
-        mShadowManager.onUserChangeData(userDesired, commit);
+        try {
+            mDeviceDataHandler.onUserChangeData(userDesired, commit);
+        } catch (JSONException e) {
+            QLog.e(TAG, "onUserChangeData", e);
+        }
     }
 
     /**
      * 监听来自服务端的控制消息
+     *
      * @param dataEventListener
      */
     public void setDataEventListener(IDataEventListener dataEventListener) {
-        mShadowManager.setDataEventListener(dataEventListener);
+        mDeviceDataHandler.setDataEventListener(dataEventListener);
     }
 }
