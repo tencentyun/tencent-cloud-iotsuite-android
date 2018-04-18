@@ -44,6 +44,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 }
 
-project.extensions.add('artifactId', 'iot-android-sdk')
-project.extensions.add('artifactDesc', 'the tencent cloud iot suite android sdk')
+project.extensions.add('artifactId', 'iot-android-sdk-core')
+project.extensions.add('artifactDesc', 'the tencent cloud iot suite android sdk core')
 

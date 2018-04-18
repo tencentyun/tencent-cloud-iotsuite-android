@@ -1,7 +1,7 @@
 
 ## 介绍
 
-IotSDK是腾讯云iotsuite的设备端SDK，IotSample是使用IotSDK的demo。
+IotSDKCore是腾讯云iotsuite的设备端SDK，DeviceSample是设备端的Demo。
 
 ## SDK嵌入说明
 
@@ -15,17 +15,17 @@ IotSDK是腾讯云iotsuite的设备端SDK，IotSample是使用IotSDK的demo。
 
 1、直接依赖jcenter上的库（建议）
 
-    implementation 'com.tencent.qcloud:iot-android-sdk:2.0.0'
+    implementation 'com.tencent.qcloud:iot-android-sdk-core:2.0.0'
 
 2、下载SDK，然后本地依赖
 
-    implementation project(path: ':IotSDK')
+    implementation project(path: ':IotSDKCore')
 
 #### 注意事项
 
-用户在自己的工程中嵌入iotsuite SDK，IotSample中com.tencent.qcloud.iot.sample.qcloud包里面的文件都需要移植过去。
+用户在自己的工程中嵌入iotsuite SDK，DeviceSample中com.tencent.qcloud.iot.sample.qcloud包里面的文件都需要移植过去。
 
-IotSample中Connection.java封装了对iotsuite SDK的调用，以及对com.tencent.qcloud.iot.sample.qcloud包内类的调用，直接基于Connection.java做二次开发会更方便。
+DeviceSample中Connection.java封装了对iotsuite SDK的调用，以及对com.tencent.qcloud.iot.sample.qcloud包内类的调用，直接基于Connection.java做二次开发会更方便。
 
 ## 根据设备信息修改Demo
 
@@ -42,9 +42,9 @@ IotSample中Connection.java封装了对iotsuite SDK的调用，以及对com.tenc
 
 #### 生成JsonFileData.java
 
-假设文件名是test.json，放置到 IotSample/tools/iot_code_generator/test.json，然后运行：
+假设文件名是test.json，放置到 DeviceSample/tools/iot_code_generator/test.json，然后运行：
 
-    cd IotSample/tools/iot_code_generator
+    cd DeviceSample/tools/iot_code_generator
     python ./tc_iot_code_generator.py -c ./test.json
 
 即可在当前目录下生成JsonFileData.java。
