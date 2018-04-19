@@ -13,7 +13,7 @@ import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
-import com.tencent.qcloud.iot.mqtt.shadow.IDataEventListener;
+import com.tencent.qcloud.iot.device.data.IDataEventListener;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowTopicHelper;
 
@@ -40,8 +40,8 @@ public class TCIotDeviceService {
         }
         mTCIotMqttClient = new TCIotMqttClient(config);
         mShadowTopicHelper = new ShadowTopicHelper(config.getProductId(), config.getDeviceName());
-        mShadowManager = ShadowManager.getInstance(mTCIotMqttClient, mShadowTopicHelper);
-        mDeviceDataHandler = new DeviceDataHandler(mShadowManager);
+        mShadowManager = new ShadowManager(mTCIotMqttClient, mShadowTopicHelper);
+        mDeviceDataHandler = DeviceDataHandler.getInstance(mShadowManager);
         mShadowHandler = new ShadowHandler(mDeviceDataHandler);
     }
 

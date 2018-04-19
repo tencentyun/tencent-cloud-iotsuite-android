@@ -1,4 +1,4 @@
-package com.tencent.qcloud.iot.mqtt.shadow;
+package com.tencent.qcloud.iot.device.data;
 
 /**
  * Created by rongerwu on 2018/4/4.

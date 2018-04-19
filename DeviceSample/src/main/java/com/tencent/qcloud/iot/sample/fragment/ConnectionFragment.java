@@ -34,38 +34,38 @@ public class ConnectionFragment extends Fragment {
     private String mDeviceName = "token_test_1";
     private String mDeviceSecret = "1e3acdf1242b17b11f353505d75cbcfa";
 
+    //监听来自服务端的控制消息,每个接口，处理完成后需要返回true，才能够正确修改上报设备数据。
+    private JsonFileData.IDataControlListener mDataControlListener = new JsonFileData.IDataControlListener() {
+        @Override
+        public boolean onControlDeviceSwitch(boolean deviceSwitch) {
+            Log.d(TAG, "onControlDeviceSwitch: " + deviceSwitch);
+            getMainActivity().showToast("onControlDeviceSwitch: " + deviceSwitch);
+            return true;
+        }
+
+        @Override
+        public boolean onControlColor(JsonFileData.Color color) {
+            Log.d(TAG, "onControlColor: " + color);
+            getMainActivity().showToast("onControlColor: " + color);
+            return true;
+        }
+
+        @Override
+        public boolean onControlBrightness(int brightness) {
+            Log.d(TAG, "onControlBrightness: " + brightness);
+            getMainActivity().showToast("onControlBrightness: " + brightness);
+            return true;
+        }
+    };
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final MainActivity activity = (MainActivity) getActivity();
         mConnection = new Connection();
         mConnection.setMessageNotifyListener(new Connection.IMessageNotifyListener() {
             @Override
             public void onMessage(String msg) {
-                activity.showToast(msg);
-            }
-        });
-        //监听来自服务端的控制消息,每个接口，处理完成后需要返回true，才能够正确修改上报设备数据。
-        mConnection.setDataControlListener(new JsonFileData.IDataControlListener() {
-            @Override
-            public boolean onControlDeviceSwitch(boolean deviceSwitch) {
-                Log.d(TAG, "onControlDeviceSwitch: " + deviceSwitch);
-                activity.showToast("onControlDeviceSwitch: " + deviceSwitch);
-                return true;
-            }
-
-            @Override
-            public boolean onControlColor(JsonFileData.Color color) {
-                Log.d(TAG, "onControlColor: " + color);
-                activity.showToast("onControlColor: " + color);
-                return true;
-            }
-
-            @Override
-            public boolean onControlBrightness(int brightness) {
-                Log.d(TAG, "onControlBrightness: " + brightness);
-                activity.showToast("onControlBrightness: " + brightness);
-                return true;
+                getMainActivity().showToast(msg);
             }
         });
     }
@@ -90,7 +90,7 @@ public class ConnectionFragment extends Fragment {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
-                        mConnection.connect(mDeviceName, mDeviceSecret);
+                        mConnection.connect(mDeviceName, mDeviceSecret, mDataControlListener);
                     } else {
                         mConnection.disconnect();
                         mTVState.setText("Closed");
@@ -131,6 +131,10 @@ public class ConnectionFragment extends Fragment {
             mRootView = rootView;
         }
         return mRootView;
+    }
+
+    private MainActivity getMainActivity() {
+        return (MainActivity) getActivity();
     }
 
 }

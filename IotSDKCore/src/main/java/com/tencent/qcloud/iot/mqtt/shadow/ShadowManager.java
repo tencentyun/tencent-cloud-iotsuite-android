@@ -16,7 +16,6 @@ import org.json.JSONObject;
 
 /**
  * 影子管理类
- * 为了避免用户外部调用connect和disconnect导致ShadowManager数据被清空，设计为单例。
  */
 public class ShadowManager {
     public static final String SHADOW_JSON_KEY_METHOD = "method";
@@ -62,24 +61,12 @@ public class ShadowManager {
     private TCIotMqttClient mTCIotMqttClient;
     private ShadowTopicHelper mShadowTopicHelper;
 
-    public static ShadowManager getInstance(TCIotMqttClient mqttClient, ShadowTopicHelper shadowTopicHelper) {
+    public ShadowManager(TCIotMqttClient mqttClient, ShadowTopicHelper shadowTopicHelper) {
         if (mqttClient == null || shadowTopicHelper == null) {
             throw new IllegalArgumentException("mqttClient and shadowTopicHelper cannot be null");
         }
-        if (mInstance == null) {
-            mInstance = new ShadowManager(shadowTopicHelper);
-        }
-        mInstance.setTCIotMqttClient(mqttClient);
-        return mInstance;
-    }
-
-    private ShadowManager(ShadowTopicHelper shadowTopicHelper) {
         mShadowTopicHelper = shadowTopicHelper;
-    }
-
-    private ShadowManager setTCIotMqttClient(TCIotMqttClient TCIotMqttClient) {
-        mTCIotMqttClient = TCIotMqttClient;
-        return this;
+        mTCIotMqttClient = mqttClient;
     }
 
     public void getShadow() throws JSONException {

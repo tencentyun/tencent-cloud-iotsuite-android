@@ -3,7 +3,6 @@ package com.tencent.qcloud.iot.device.data;
 import android.support.annotation.NonNull;
 
 import com.tencent.qcloud.iot.common.QLog;
-import com.tencent.qcloud.iot.mqtt.shadow.IDataEventListener;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
 
 import org.json.JSONException;
@@ -18,6 +17,8 @@ import java.util.Iterator;
  */
 
 /**
+ * 为了避免用户外部调用connect和disconnect导致缓存的数据被清空，设计为单例。
+ *
  * desire处理逻辑：
  * 1、不把服务端desired置为null。
  * 2、客户端缓存收到的desired（包括上线时get到的desired和包含在control命令里的desired），假设是mCachedDesired（假如收到2次，第一次是{A:1}，第二次是{B:2}，则保存的是{A:1, B:2}）
@@ -26,8 +27,15 @@ import java.util.Iterator;
  */
 public class DeviceDataHandler {
     private static final String TAG = DeviceDataHandler.class.getSimpleName();
+    private static DeviceDataHandler mInstance;
     private ShadowManager mShadowManager;
+    /**
+     * 缓存来自服务端或本地的desired
+     */
     private JSONObject mCachedDesired = new JSONObject();
+    /**
+     * 缓存本地desired用于report，report后需要清空
+     */
     private JSONObject mUserDesiredToReport = new JSONObject();
     /**
      * 设备端数据
@@ -35,12 +43,29 @@ public class DeviceDataHandler {
     private JSONObject mLocalDeviceData = new JSONObject();
     private IDataEventListener mDataEventListener;
 
-    public DeviceDataHandler(ShadowManager shadowManager) {
+    public static DeviceDataHandler getInstance(ShadowManager shadowManager) {
+        if (shadowManager == null) {
+            throw new IllegalArgumentException("shadowManager is null");
+        }
+        if (mInstance == null) {
+            mInstance = new DeviceDataHandler(shadowManager);
+        }
+        mInstance.setShadowManager(shadowManager);
+        return mInstance;
+    }
+
+    private DeviceDataHandler(ShadowManager shadowManager) {
         mShadowManager = shadowManager;
+    }
+
+    private DeviceDataHandler setShadowManager(ShadowManager shadowManager) {
+        mShadowManager = shadowManager;
+        return this;
     }
 
     /**
      * 处理get到的shadow里的desired
+     *
      * @param desired
      * @throws JSONException
      */
@@ -56,6 +81,7 @@ public class DeviceDataHandler {
 
     /**
      * 处理control消息里的desired
+     *
      * @param desired
      * @throws JSONException
      */
@@ -95,8 +121,9 @@ public class DeviceDataHandler {
 
     /**
      * 用户主动改变设备数据，效果类似于从服务端收到desired，因此相应更新CachedDesired
+     *
      * @param userDesired 用户改变的数据的json结构
-     * @param commit 是否需要立即上报到服务器
+     * @param commit      是否需要立即上报到服务器
      */
     public void onUserChangeData(JSONObject userDesired, boolean commit) throws JSONException {
         if (userDesired == null) {
@@ -120,7 +147,7 @@ public class DeviceDataHandler {
                 mShadowManager.reportShadow(reportObject);
             }
             //report后，清空
-            mCachedDesired = new JSONObject();
+            mUserDesiredToReport = new JSONObject();
         }
     }
 
@@ -150,6 +177,7 @@ public class DeviceDataHandler {
 
     /**
      * 返回desired中与mCachedDesired不同的字段
+     *
      * @param compareDesired
      * @return
      */

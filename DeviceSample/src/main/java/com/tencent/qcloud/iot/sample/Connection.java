@@ -16,8 +16,9 @@ import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
 import com.tencent.qcloud.iot.sample.model.Subscribe;
-import com.tencent.qcloud.iot.sample.qcloud.DeviceDataManager;
+import com.tencent.qcloud.iot.sample.qcloud.DeviceDataHelper;
 import com.tencent.qcloud.iot.sample.qcloud.JsonFileData;
+import com.tencent.qcloud.iot.sample.qcloud.ProductInfoHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,10 +51,11 @@ public class Connection implements Parcelable {
      */
     private IMessageNotifyListener mMessageNotifyListener;
 
-    private DeviceDataManager mDeviceDataManager;
+    private ProductInfoHelper mProductInfoHelper;
+    private DeviceDataHelper mDeviceDataHelper;
 
     public Connection() {
-        mDeviceDataManager = new DeviceDataManager();
+        mProductInfoHelper = new ProductInfoHelper();
         mSubscribesMap = new HashMap<>();
         QLog.setLogLevel(QLog.QLOG_LEVEL_DEBUG);
     }
@@ -88,11 +90,11 @@ public class Connection implements Parcelable {
      * @param deviceName   不可以为null
      * @param deviceSecret 直连模式下可以为null, token模式下不可以为null.
      */
-    public void connect(String deviceName, String deviceSecret) {
+    public void connect(String deviceName, String deviceSecret, JsonFileData.IDataControlListener dataControlListener) {
         if (mTCIotDeviceService != null) {
             mTCIotDeviceService.disconnect();
         }
-        mTCMqttConfig = mDeviceDataManager.genTCMqttConfig();
+        mTCMqttConfig = mProductInfoHelper.genTCMqttConfig();
         mTCMqttConfig.setDeviceName(deviceName);
         if (deviceSecret != null) {
             mTCMqttConfig.setDeviceSecret(deviceSecret);
@@ -104,6 +106,10 @@ public class Connection implements Parcelable {
                 .setMaxRetryTimes(5000);
 
         connect(mTCMqttConfig);
+
+        mDeviceDataHelper = new DeviceDataHelper(mTCIotDeviceService, mProductInfoHelper.getJsonFileData().getDataTemplate());
+        //设置监听来自服务端的控制消息
+        mDeviceDataHelper.setDataControlListener(dataControlListener);
     }
 
     private void connect(TCMqttConfig config) {
@@ -130,7 +136,6 @@ public class Connection implements Parcelable {
         });
         //设置监听来自已订阅topic的消息
         mTCIotDeviceService.setMqttMessageListener(mMqttMessageListener);
-        mDeviceDataManager.setTCIotDeviceService(mTCIotDeviceService);
     }
 
     /**
@@ -281,11 +286,11 @@ public class Connection implements Parcelable {
     }
 
     public JsonFileData getJsonFileData() {
-        return mDeviceDataManager.getJsonFileData();
+        return mProductInfoHelper.getJsonFileData();
     }
 
-    public void setDataControlListener(JsonFileData.IDataControlListener dataControlListener) {
-        mDeviceDataManager.setDataControlListener(dataControlListener);
+    public JsonFileData.DataTemplate getDataTemplate() {
+        return mDeviceDataHelper.getDataTemplate();
     }
 
     public Connection setSubscribeStateListener(ISubscribeStateListener subscribeStateListener) {
