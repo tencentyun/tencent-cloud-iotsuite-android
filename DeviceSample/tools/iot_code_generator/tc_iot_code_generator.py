@@ -63,6 +63,10 @@ class Util:
         return "\"" + str + "\""
 
     @staticmethod
+    def jsonOpt(jsonObject, key, default):
+        return jsonObject[key] if dict(jsonObject).has_key(key) else default
+
+    @staticmethod
     def genSpaceStr(spaceCount):
         return "".join(" " for i in range(spaceCount))
 
@@ -312,22 +316,24 @@ def generateFile(outFilePath, configObject):
 
 def generateCode(outFile, tempOutFile, configObject):
     #JsonFileData成员变量代码
-    configFieldObject = {Util.convertToStubName(Const.PRODUCT_ID): Util.wrapQuote(configObject[Const.PRODUCT_ID]),
-                     Util.convertToStubName(Const.PRODUCT_KEY): Util.wrapQuote(configObject[Const.PRODUCT_KEY]),
-                     Util.convertToStubName(Const.PRODUCT_SECRET): Util.wrapQuote(configObject[Const.PRODUCT_SECRET]),
-                     Util.convertToStubName(Const.APP_ID): str(configObject[Const.APP_ID]),
-                     Util.convertToStubName(Const.REGION): Util.wrapQuote(configObject[Const.REGION]),
-                     Util.convertToStubName(Const.PRODUCT_NAME): Util.wrapQuote(configObject[Const.PRODUCT_NAME]),
-                     Util.convertToStubName(Const.DESCRIPTION): Util.wrapQuote(configObject[Const.DESCRIPTION]),
-                     Util.convertToStubName(Const.DOMAIN): Util.wrapQuote(configObject[Const.DOMAIN]),
-                     Util.convertToStubName(Const.STANDARD): str(configObject[Const.STANDARD]),
-                     Util.convertToStubName(Const.AUTH_TYPE): str(configObject[Const.AUTH_TYPE]),
-                     Util.convertToStubName(Const.DELETED): str(configObject[Const.DELETED]),
-                     Util.convertToStubName(Const.MESSAGE): Util.wrapQuote(configObject[Const.MESSAGE]),
-                     Util.convertToStubName(Const.CREATE_TIME): Util.wrapQuote(configObject[Const.CREATE_TIME]),
-                     Util.convertToStubName(Const.UPDATE_TIME): Util.wrapQuote(configObject[Const.UPDATE_TIME]),
-                     Util.convertToStubName(Const.USERNAME): Util.wrapQuote(configObject[Const.USERNAME]),
-                     Util.convertToStubName(Const.PASSWORD): Util.wrapQuote(configObject[Const.PASSWORD]),
+    defaultStrVal = ""
+    defaultIntVal = 0
+    configFieldObject = {Util.convertToStubName(Const.PRODUCT_ID): Util.wrapQuote(Util.jsonOpt(configObject, Const.PRODUCT_ID, defaultStrVal)),
+                     Util.convertToStubName(Const.PRODUCT_KEY): Util.wrapQuote(Util.jsonOpt(configObject, Const.PRODUCT_KEY, defaultStrVal)),
+                     Util.convertToStubName(Const.PRODUCT_SECRET): Util.wrapQuote(Util.jsonOpt(configObject, Const.PRODUCT_SECRET, defaultStrVal)),
+                     Util.convertToStubName(Const.APP_ID): str(Util.jsonOpt(configObject, Const.APP_ID, defaultIntVal)),
+                     Util.convertToStubName(Const.REGION): Util.wrapQuote(Util.jsonOpt(configObject, Const.REGION, defaultStrVal)),
+                     Util.convertToStubName(Const.PRODUCT_NAME): Util.wrapQuote(Util.jsonOpt(configObject, Const.PRODUCT_NAME, defaultStrVal)),
+                     Util.convertToStubName(Const.DESCRIPTION): Util.wrapQuote(Util.jsonOpt(configObject, Const.DESCRIPTION, defaultStrVal)),
+                     Util.convertToStubName(Const.DOMAIN): Util.wrapQuote(Util.jsonOpt(configObject, Const.DOMAIN, defaultStrVal)),
+                     Util.convertToStubName(Const.STANDARD): str(Util.jsonOpt(configObject, Const.STANDARD, defaultIntVal)),
+                     Util.convertToStubName(Const.AUTH_TYPE): str(Util.jsonOpt(configObject, Const.AUTH_TYPE, defaultIntVal)),
+                     Util.convertToStubName(Const.DELETED): str(Util.jsonOpt(configObject, Const.DELETED, defaultIntVal)),
+                     Util.convertToStubName(Const.MESSAGE): Util.wrapQuote(Util.jsonOpt(configObject, Const.MESSAGE, defaultStrVal)),
+                     Util.convertToStubName(Const.CREATE_TIME): Util.wrapQuote(Util.jsonOpt(configObject, Const.CREATE_TIME, defaultStrVal)),
+                     Util.convertToStubName(Const.UPDATE_TIME): Util.wrapQuote(Util.jsonOpt(configObject, Const.UPDATE_TIME, defaultStrVal)),
+                     Util.convertToStubName(Const.USERNAME): Util.wrapQuote(Util.jsonOpt(configObject, Const.USERNAME, defaultStrVal)),
+                     Util.convertToStubName(Const.PASSWORD): Util.wrapQuote(Util.jsonOpt(configObject, Const.PASSWORD, defaultStrVal)),
                      }
 
     dataTemplateInstance = DataTemplate()
