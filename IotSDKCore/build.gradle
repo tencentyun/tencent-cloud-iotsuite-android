@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     buildToolsVersion "27.0.3"
     defaultConfig {
-        minSdkVersion 18
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 20000
         versionName "2.0.0"

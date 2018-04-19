@@ -5,7 +5,7 @@ android {
     buildToolsVersion "27.0.3"
     defaultConfig {
         applicationId "com.tencent.qcloud.iot.sample"
-        minSdkVersion 18
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 20000
         versionName "2.0.0"
