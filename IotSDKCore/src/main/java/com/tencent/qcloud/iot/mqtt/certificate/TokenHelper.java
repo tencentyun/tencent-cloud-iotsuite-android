@@ -41,7 +41,7 @@ public class TokenHelper {
     private String mProductId;
     private String mDeviceName;
     private String mDeviceSecret;
-    private final String mScheme = "http";
+    private final String mScheme = "https";
 
     public TokenHelper(String region, String productId, String deviceName, String deviceSecret) {
         if (region == null || productId == null || deviceName == null || deviceSecret == null) {
