@@ -66,8 +66,8 @@ public class DeviceDataHandler {
     /**
      * 处理get到的shadow里的desired
      *
-     * @param desired
-     * @throws JSONException
+     * @param desired desired对象
+     * @throws JSONException 异常
      */
     public void handleDesiredForInit(JSONObject desired) throws JSONException {
         if (desired == null) {
@@ -82,8 +82,8 @@ public class DeviceDataHandler {
     /**
      * 处理control消息里的desired
      *
-     * @param desired
-     * @throws JSONException
+     * @param desired desired对象
+     * @throws JSONException 异常
      */
     public void handleDeisredForControl(JSONObject desired) throws JSONException {
         if (desired == null) {
@@ -124,6 +124,7 @@ public class DeviceDataHandler {
      *
      * @param userDesired 用户改变的数据的json结构
      * @param commit      是否需要立即上报到服务器
+     * @throws JSONException 异常
      */
     public void onUserChangeData(JSONObject userDesired, boolean commit) throws JSONException {
         if (userDesired == null) {

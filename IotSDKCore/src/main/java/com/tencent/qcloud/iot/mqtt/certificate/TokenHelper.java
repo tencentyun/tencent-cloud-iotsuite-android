@@ -6,9 +6,9 @@ import android.util.Base64;
 
 import com.tencent.qcloud.iot.common.QLog;
 import com.tencent.qcloud.iot.mqtt.TCMqttClientException;
-import com.tencent.qcloud.iot.mqtt.constant.TCConstants;
 import com.tencent.qcloud.iot.mqtt.http.AsyncHttpURLConnection;
 import com.tencent.qcloud.iot.utils.StringUtil;
+import com.tencent.qcloud.iot.utils.TCUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -33,16 +33,21 @@ import javax.crypto.spec.SecretKeySpec;
  * 帮助获取token的类
  */
 public class TokenHelper {
+    public static final int TOKEN_RETURN_CODE_SUCCESS = 0;
+
     private static final String TAG = TokenHelper.class.getSimpleName();
 
+    private String mRegion;
     private String mProductId;
     private String mDeviceName;
     private String mDeviceSecret;
+    private final String mScheme = "http";
 
-    public TokenHelper(String productId, String deviceName, String deviceSecret) {
-        if (productId == null || deviceName == null || deviceSecret == null) {
-            throw new IllegalArgumentException("productId / deviceName / deviceSecret cannot be null");
+    public TokenHelper(String region, String productId, String deviceName, String deviceSecret) {
+        if (region == null || productId == null || deviceName == null || deviceSecret == null) {
+            throw new IllegalArgumentException("region / productId / deviceName / deviceSecret cannot be null");
         }
+        mRegion = region;
         mProductId = productId;
         mDeviceName = deviceName;
         mDeviceSecret = deviceSecret;
@@ -53,29 +58,29 @@ public class TokenHelper {
             throw new IllegalArgumentException("clientId is null");
         }
         //先跟服务器同步时间
-        AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, TCConstants.TIMESTAMP_URL, null,
+        AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, TCUtil.getTimeUrl(mScheme, mRegion), null,
                 new AsyncHttpURLConnection.AsyncHttpEvents() {
-            @Override
-            public void onHttpError(String errorMessage) {
-                QLog.e(TAG, "get server timestamp error: " + errorMessage);
-                if (listener != null) {
-                    listener.onFailed(errorMessage);
-                }
-            }
-
-            @Override
-            public void onHttpComplete(String response) {
-                if (TextUtils.isEmpty(response)) {
-                    if (listener != null) {
-                        listener.onFailed("empty response");
+                    @Override
+                    public void onHttpError(String errorMessage) {
+                        QLog.e(TAG, "get server timestamp error: " + errorMessage);
+                        if (listener != null) {
+                            listener.onFailed(errorMessage);
+                        }
                     }
-                    return;
-                }
-                QLog.d(TAG, "get server timestamp complete, response = " + response);
-                String tokenUrl = generateTokenUrl(clientId, response);
-                requestToken(tokenUrl, listener);
-            }
-        });
+
+                    @Override
+                    public void onHttpComplete(String response) {
+                        if (TextUtils.isEmpty(response)) {
+                            if (listener != null) {
+                                listener.onFailed("empty response");
+                            }
+                            return;
+                        }
+                        QLog.d(TAG, "get server timestamp complete, response = " + response);
+                        String tokenUrl = generateTokenUrl(clientId, response);
+                        requestToken(tokenUrl, listener);
+                    }
+                });
         httpConnection.send();
     }
 
@@ -101,7 +106,7 @@ public class TokenHelper {
                 try {
                     JSONObject responseJson = new JSONObject(response);
                     int code = responseJson.getInt("returnCode");
-                    if (code != TCConstants.TOKEN_RETURN_CODE_SUCCESS) {
+                    if (code != TOKEN_RETURN_CODE_SUCCESS) {
                         if (listener != null) {
                             listener.onFailed(response);
                         }
@@ -136,7 +141,7 @@ public class TokenHelper {
         paramMap.put("timestamp", timestamp);
         Set<String> keySet = paramMap.keySet();
 
-        Uri.Builder builder = Uri.parse(TCConstants.TOKEN_URL).buildUpon();
+        Uri.Builder builder = Uri.parse(TCUtil.getTokenUrl(mScheme, mRegion)).buildUpon();
         for (String key : keySet) {
             builder.appendQueryParameter(key, paramMap.get(key));
         }

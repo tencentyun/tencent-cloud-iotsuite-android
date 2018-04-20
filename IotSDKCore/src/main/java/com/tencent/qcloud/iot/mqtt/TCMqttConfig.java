@@ -53,6 +53,8 @@ public class TCMqttConfig {
      */
     private String mMqttHost = "unknown";
 
+    private String mRegion = "unknown";
+
     /**
      * 连接模式.分为直连模式和token模式
      */
@@ -85,7 +87,7 @@ public class TCMqttConfig {
      */
     private int mKeepAliveSeconds = DEFAULT_KEEP_ALIVE_SECONDS;
 
-    public TCMqttConfig(String mqttHost, String productKey, String productId) {
+    public TCMqttConfig(String mqttHost, String productKey, String productId, String region) {
         if (TextUtils.isEmpty(mqttHost)) {
             throw new IllegalArgumentException("mqttHost is empty");
         }
@@ -95,9 +97,13 @@ public class TCMqttConfig {
         if (TextUtils.isEmpty(productId)) {
             throw new IllegalArgumentException("productId is empty");
         }
+        if (TextUtils.isEmpty(region)) {
+            throw new IllegalArgumentException("region is empty");
+        }
         mMqttHost = mqttHost;
         mProductKey = productKey;
         mProductId = productId;
+        mRegion = region;
     }
 
     public String getProductKey() {
@@ -170,6 +176,10 @@ public class TCMqttConfig {
 
     public String getMqttHost() {
         return mMqttHost;
+    }
+
+    public String getRegion() {
+        return mRegion;
     }
 
     public KeyStore getKeyStore() {

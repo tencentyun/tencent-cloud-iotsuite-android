@@ -31,18 +31,7 @@ public class TCIotMqttClientTest {
     private KeyStore mKeyStore;
 
     public TCIotMqttClientTest() throws IOException {
-        TCMqttConfig config = new TCMqttConfig("mqtt-m2i58z3s.ap-guangzhou.mqtt.tencentcloudmq.com", "mqtt-m2i58z3s", "test_android_1", "48bf05179b6f1be3b38c89f27c804f11")
-                .setProductId("iot-6xzr8ap8")
-                .setConnectionMode(TCMqttConfig.TCMqttConnectionMode.MODE_DIRECT)
-                .setMqttUserName("AKIDNgssgTw1pW2NahKR4oRt9D6ofNuGgSKG")
-                .setMqttPassword("085Nmo6yhgR/TMjSPfFWP+TEVrggjVNFtAyvZUCxp0U=")
-                .setMinRetryTimeMs(MIN_RETRY_TIME_MS)
-                .setMaxRetryTimeMs(MAX_RETRY_TIME_MS)
-                .setMaxRetryTimes(2);
-        mTCIotMqttClient = new TCIotMqttClient(config);
-        mCountDownLatch = new CountDownLatch(1);
-        CertificateProviderTest certificateProvider = new CertificateProviderTest();
-        //mKeyStore = certificateProvider.getKeyStore();
+
     }
 
     @Test

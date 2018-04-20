@@ -70,7 +70,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
      * 建立mqtt连接.
      * 必须在指定线程上运行.
      *
-     * @param connectStateCallback
+     * @param connectStateCallback connect状态回调
      */
     @Override
     protected void connectInternal(final IMqttConnectStateCallback connectStateCallback) {
@@ -99,7 +99,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
         if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_DIRECT) {//直连模式，直接mqtt连接.
             mqttConnect();
         } else if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_TOKEN) {//token模式，先请求token，再mqtt连接.
-            TokenHelper tokenHelper = new TokenHelper(mTCMqttConfig.getProductId(), mTCMqttConfig.getDeviceName(), mTCMqttConfig.getDeviceSecret());
+            TokenHelper tokenHelper = new TokenHelper(mTCMqttConfig.getRegion(), mTCMqttConfig.getProductId(), mTCMqttConfig.getDeviceName(), mTCMqttConfig.getDeviceSecret());
             tokenHelper.getToken(mMqttClientId, new TokenHelper.ITokenListener() {
                 @Override
                 public void onSuccessed(String userName, String password) {
@@ -316,7 +316,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
      * 发布消息.
      * 必须在指定线程上运行.
      *
-     * @param request
+     * @param request 请求
      */
     @Override
     protected void publishInternal(final MqttPublishRequest request) {
@@ -330,7 +330,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
      * 订阅主题.
      * 必须在指定线程上运行.
      *
-     * @param request
+     * @param request 请求
      */
     @Override
     protected void subscribeInternal(final MqttSubscribeRequest request) {
@@ -344,7 +344,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
      * 取消订阅主题.
      * 必须在指定线程上运行.
      *
-     * @param request
+     * @param request 请求
      */
     @Override
     protected void unSubscribeInternal(final MqttUnSubscribeRequest request) {
@@ -358,7 +358,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
      * 订阅及发布相关请求的预处理.
      * 当未连接时不予请求. 当连接但未成功时将请求加入队列，待连接成功时再发出请求.
      *
-     * @param request
+     * @param request 请求
      */
     private void preRequest(BaseMqttRequest request) {
         if (request == null) {
@@ -503,8 +503,8 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
     /**
      * 设置消息到达的监听，当所订阅主题发来消息时，会触发此监听.
      *
-     * @param listener
-     * @return
+     * @param listener 监听接口
+     * @return 返回当前实例
      */
     public TCIotMqttClient setMqttMessageListener(IMqttMessageListener listener) {
         mMqttMessageListener = listener;

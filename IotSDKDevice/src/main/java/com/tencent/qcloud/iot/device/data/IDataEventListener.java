@@ -8,8 +8,8 @@ package com.tencent.qcloud.iot.device.data;
 public interface IDataEventListener {
     /**
      * 控制事件，可能是收到服务端的control，也可能是getShadow后触发
-     * @param key
-     * @param value
+     * @param key key
+     * @param value value
      * @param diff 标识value的是否和设备当前状态一致，如果一致，可以不做处理。
      */
     void onControl(String key, Object value, boolean diff);

@@ -158,7 +158,7 @@ public class TCIotDeviceService {
     /**
      * 监听来自服务端的控制消息
      *
-     * @param dataEventListener
+     * @param dataEventListener 监听接口
      */
     public void setDataEventListener(IDataEventListener dataEventListener) {
         mDeviceDataHandler.setDataEventListener(dataEventListener);

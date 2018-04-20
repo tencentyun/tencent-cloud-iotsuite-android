@@ -20,7 +20,7 @@ public class ProductInfoHelper {
      * @return
      */
     public TCMqttConfig genTCMqttConfig() {
-        TCMqttConfig config = new TCMqttConfig(mJsonFileData.getHost(), mJsonFileData.getProductKey(), mJsonFileData.getProductId());
+        TCMqttConfig config = new TCMqttConfig(mJsonFileData.getHost(), mJsonFileData.getProductKey(), mJsonFileData.getProductId(), mJsonFileData.getRegion());
         TCMqttConfig.TCMqttConnectionMode connectionMode = getConnectionMode();
         config.setConnectionMode(connectionMode);
         if (connectionMode == TCMqttConfig.TCMqttConnectionMode.MODE_DIRECT) {
