@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.tencent.qcloud.iot.sample.BaseActivity;
 import com.tencent.qcloud.iot.sample.Connection;
 import com.tencent.qcloud.iot.sample.Constants;
 import com.tencent.qcloud.iot.sample.R;
@@ -52,9 +53,13 @@ public class DataFragment extends Fragment {
 
     public void testSetDataTemplate() {
         JsonFileData.DataTemplate dataTemplate = mConnection.getDataTemplate();
+        if (dataTemplate == null) {
+            ((BaseActivity) getActivity()).showToast("please connect first");
+            return;
+        }
         //当本地控制设备状态变化时，需要调用接口设置数据点的值。
         //第二个参数表示是否立即上报服务端。如果需要设置多个数据点的值，建议只在修改最后一个数据点值时设为true，这样就只会上报一次，避免频繁上报。
-        dataTemplate.setBrightnessByUser(15, false);
+        dataTemplate.setBrightnessByUser(15.5, false);
         dataTemplate.setColorByUser(JsonFileData.Color.BLUE, true);
     }
 }

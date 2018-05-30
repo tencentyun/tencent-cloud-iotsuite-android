@@ -17,6 +17,8 @@ from requests.packages.urllib3.exceptions import InsecurePlatformWarning
 requests.packages.urllib3.disable_warnings(InsecurePlatformWarning)
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+import logging
+import httplib
 
 reload(sys)
 sys.setdefaultencoding("utf-8")
@@ -43,6 +45,13 @@ class Request:
         self.secretKey = secretKey
 
     def send(self, requestHost, requestUri, params, files = {}, method = 'GET', debug = 0):
+        # httplib.HTTPConnection.debuglevel = 1
+        # logging.basicConfig()
+        # logging.getLogger().setLevel(logging.DEBUG)
+        # req_log = logging.getLogger('requests.packages.urllib3')
+        # req_log.setLevel(logging.DEBUG)
+        # req_log.propagate = True
+
         params['RequestClient'] = Request.version
         params['SecretId'] = self.secretId
         sign = Sign(self.secretId, self.secretKey)

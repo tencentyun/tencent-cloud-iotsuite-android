@@ -5,6 +5,8 @@
 
 package com.tencent.qcloud.iot.common;
 
+import com.tencent.qcloud.iot.log.QLog;
+
 import org.junit.Assert;
 import org.junit.Test;
 

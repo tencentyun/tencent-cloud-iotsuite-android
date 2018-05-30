@@ -40,6 +40,7 @@ class Const:
     DT_TYPE_ENUM = "enum"
     DT_TYPE_NUMBER = "number"
     DT_TYPE_BOOL = "bool"
+    DT_TYPE_STRING = "string"
 
     DT_DICT_KEY_CONST_STRING = "key_const_string"
     DT_DICT_KEY_FIELD = "key_field"
@@ -152,10 +153,9 @@ class DataTemplate:
             if type == Const.DT_TYPE_BOOL:
                 return "boolean"
             elif type == Const.DT_TYPE_NUMBER:
-                for index, val in enumerate(range):
-                    if isinstance(val, float):
-                        return "double"
-                return "int"
+                return "double"
+            elif type == Const.DT_TYPE_STRING:
+                return "String"
 
     #生成get方法，当成员变量不可读时，用private
     def genGetMethod(self, methodName, javaType, fieldName, readable):
@@ -166,13 +166,22 @@ class DataTemplate:
         return methodString
 
     #生成set方法
-    def genSetMethod(self, methodName, javaType, fieldName, variableName, range, isNumber):
+    def genSetMethod(self, methodName, javaType, fieldName, variableName, range, isNumber, isString):
         methodString = "private void {}({} {}) {{".format(methodName, javaType, variableName)
         if isNumber:
             methodString += Util.genNewLineAndSpaceStr(12) + "final {} min = {};".format(javaType, range[0])
             methodString += Util.genNewLineAndSpaceStr(12) + "final {} max = {};".format(javaType, range[1])
             methodString += Util.genNewLineAndSpaceStr(12) + "if ({} < min || {} > max) {{".format(variableName, variableName)
             methodString += Util.genNewLineAndSpaceStr(16) + "throw new IllegalArgumentException(\"out of range [\" + min + \", \" + max + \"]\");"
+            methodString += Util.genNewLineAndSpaceStr(12) + "}"
+        elif isString:
+            methodString += Util.genNewLineAndSpaceStr(12) + "final int min = {};".format(range[0])
+            methodString += Util.genNewLineAndSpaceStr(12) + "final int max = {};".format(range[1])
+            methodString += Util.genNewLineAndSpaceStr(12) + "if ({} == null) {{".format(variableName)
+            methodString += Util.genNewLineAndSpaceStr(16) + "{} = \"\";".format(variableName)
+            methodString += Util.genNewLineAndSpaceStr(12) + "}"
+            methodString += Util.genNewLineAndSpaceStr(12) + "if ({}.length() < min || {}.length() > max) {{".format(variableName, variableName)
+            methodString += Util.genNewLineAndSpaceStr(16) + "throw new IllegalArgumentException(\"string length out of range [\" + min + \", \" + max + \"]\");"
             methodString += Util.genNewLineAndSpaceStr(12) + "}"
         methodString += Util.genNewLineAndSpaceStr(12) + "{} = {};".format(fieldName, variableName)
         methodString += Util.genNewLineAndSpaceStr(12) + "onLocalDataChange();"
@@ -266,6 +275,7 @@ class DataTemplate:
             itemRange = item[Const.DT_RANGE]
             isEnum = (itemType == Const.DT_TYPE_ENUM)
             isNumber = (itemType == Const.DT_TYPE_NUMBER)
+            isString = (itemType == Const.DT_TYPE_STRING)
             isBool = (itemType == Const.DT_TYPE_BOOL)
             javaType = self.convertToJavaType(itemType, itemName, isEnum, itemRange)
             className = AndroidUtil.convertToClassNameStyle(itemName)
@@ -284,13 +294,15 @@ class DataTemplate:
                 initValue = "false"
             elif isEnum:
                 initValue = "{}.values()[0]".format(className)
+            elif isString:
+                initValue = "\"\""
             else:
                 initValue = itemRange[0]
 
             itemDict[Const.DT_DICT_KEY_CONST_STRING] = "private static final String {} = {};".format(constStringName, Util.wrapQuote(itemName))
             itemDict[Const.DT_DICT_KEY_FIELD] = "private {} {} = {};".format(javaType, fieldName, initValue)
             itemDict[Const.DT_DICT_KEY_GET_METHOD] = self.genGetMethod(getMethodName, javaType, fieldName, readable)
-            itemDict[Const.DT_DICT_KEY_SET_METHOD] = self.genSetMethod(setMethodName, javaType, fieldName, variableName, itemRange, isNumber)
+            itemDict[Const.DT_DICT_KEY_SET_METHOD] = self.genSetMethod(setMethodName, javaType, fieldName, variableName, itemRange, isNumber, isString)
             itemDict[Const.DT_DICT_KEY_USER_SET_METHOD] = self.genUserSetMethod(userSetMethodName, javaType, setMethodName, constStringName, fieldName, variableName, isEnum, writeable)
             itemDict[Const.DT_DICT_KEY_TO_JSON_METHOD] = self.genToJsonFragment(constStringName, fieldName, isEnum)
             itemDict[Const.DT_DICT_KEY_ON_CONTROL_METHOD] = self.genOnControlFragment(constStringName, variableName, setMethodName, enumIndexMethodName, onControlMethodName,javaType, isEnum, isNumber)

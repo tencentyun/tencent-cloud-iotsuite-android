@@ -51,7 +51,7 @@ public class ConnectionFragment extends Fragment {
         }
 
         @Override
-        public boolean onControlBrightness(int brightness) {
+        public boolean onControlBrightness(double brightness) {
             Log.d(TAG, "onControlBrightness: " + brightness);
             getMainActivity().showToast("onControlBrightness: " + brightness);
             return true;
@@ -123,7 +123,7 @@ public class ConnectionFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mSwitchConnection.setChecked(false);
+                            mTVState.setText("Closed");
                         }
                     });
                 }

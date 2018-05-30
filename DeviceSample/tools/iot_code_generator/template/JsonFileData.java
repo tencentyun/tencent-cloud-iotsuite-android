@@ -145,7 +145,7 @@ public class JsonFileData {
             JSONObject object = new JSONObject();
             try {
                 ${JAVA_CODE_TO_JSON_METHOD}
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 throw new RuntimeException("to json string error", e);
             }
             return object;

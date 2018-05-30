@@ -3,7 +3,6 @@ package com.tencent.qcloud.iot.mqtt.request;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 
 /**
@@ -11,11 +10,10 @@ import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class MqttPublishRequest extends BaseMqttRequest {
+public class MqttPublishRequest extends BaseMqttRequest<MqttPublishRequest> {
     private String mMsg = "msg";
     private String mTopic = "topic";
     private TCIotMqttQos mQos = TCIotMqttQos.QOS0;
-    private IMqttActionCallback mCallback;
 
     public String getMsg() {
         return mMsg;
@@ -49,15 +47,6 @@ public class MqttPublishRequest extends BaseMqttRequest {
 
     public MqttPublishRequest setQos(TCIotMqttQos qos) {
         mQos = qos;
-        return this;
-    }
-
-    public IMqttActionCallback getCallback() {
-        return mCallback;
-    }
-
-    public MqttPublishRequest setCallback(IMqttActionCallback callback) {
-        mCallback = callback;
         return this;
     }
 }

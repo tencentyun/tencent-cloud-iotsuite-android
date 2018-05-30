@@ -1,6 +1,6 @@
 package com.tencent.qcloud.iot.mqtt;
 
-import com.tencent.qcloud.iot.common.QLog;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.common.ReconnectHelper;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
@@ -52,6 +52,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
     private ConcurrentLinkedQueue<BaseMqttRequest> mMqttRequestQueue;
     private ConcurrentLinkedQueue<MqttSubscribeRequest> mReSubscribeQueue;
     private IMqttMessageListener mMqttMessageListener;
+    private Object mConnectSuccessLock = new Object();
 
     public TCIotMqttClient(TCMqttConfig config) {
         if (config == null) {
@@ -100,21 +101,28 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
             mqttConnect();
         } else if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_TOKEN) {//token模式，先请求token，再mqtt连接.
             TokenHelper tokenHelper = new TokenHelper(mTCMqttConfig.getRegion(), mTCMqttConfig.getProductId(), mTCMqttConfig.getDeviceName(), mTCMqttConfig.getDeviceSecret());
-            tokenHelper.getToken(mMqttClientId, new TokenHelper.ITokenListener() {
+            final String clientId = mMqttClientId;
+            tokenHelper.getToken(clientId, new TokenHelper.ITokenListener() {
                 @Override
-                public void onSuccessed(String userName, String password) {
+                public void onSuccess(String userName, String password) {
                     mTCMqttConfig.setMqttUserName(userName)
                             .setMqttPassword(password);
                     getHandler().post(new Runnable() {
                         @Override
                         public void run() {
+                            if (mUserDisconnect || !clientId.equals(mMqttClientId)) {
+                                return;
+                            }
                             mqttConnect();
                         }
                     });
                 }
 
                 @Override
-                public void onFailed(String message) {
+                public void onFailure(String message) {
+                    if (mUserDisconnect || !clientId.equals(mMqttClientId)) {
+                        return;
+                    }
                     QLog.e(TAG, "get token failed, " + message);
                     onConnectFailed(new Throwable("get token failed, " + message));
                 }
@@ -268,7 +276,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
                 QLog.e(TAG, "messageArrived error, message or payload is null");
                 return;
             }
-            QLog.d(TAG, "messageArrived: " + message + ", clientId = " + mMqttClientId + ", topic = " + topic);
+            //QLog.d(TAG, "messageArrived: " + message + ", clientId = " + mMqttClientId + ", topic = " + topic);
             String msg = new String(message.getPayload(), StringUtil.UTF8);
             if (mMqttMessageListener != null) {
                 mMqttMessageListener.onMessageArrived(topic, msg);
@@ -289,14 +297,16 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
         public void onSuccess(IMqttToken asyncActionToken) {
             QLog.d(TAG, "connect successed, clientId = " + mMqttClientId);
             mReconnectHelper.reset();
-            setConnectStateAndNotify(MqttConnectState.CONNECTED);
-            reSubscribeFromQueue();
-            sendRequestFromQueueIfConnected();
+            synchronized (mConnectSuccessLock) {
+                setConnectStateAndNotify(MqttConnectState.CONNECTED);
+                reSubscribeFromQueue();
+                sendRequestFromQueueIfConnected();
+            }
         }
 
         @Override
         public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-            QLog.d(TAG, "connect failed, exception: " + (exception != null ? exception : "") + ", clientId = " + mMqttClientId);
+            QLog.w(TAG, "connect failed, exception: " + (exception != null ? exception : "") + ", clientId = " + mMqttClientId);
             onConnectFailed(exception);
         }
     };
@@ -366,32 +376,21 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
         }
         if (mUserDisconnect) {
             QLog.w(TAG, "cannot request, client has closed, ");
-            if (request instanceof MqttPublishRequest) {
-                MqttPublishRequest publishRequest = (MqttPublishRequest) request;
-                if (publishRequest.getCallback() != null) {
-                    publishRequest.getCallback().onFailure(new Throwable("disconnected"));
-                }
-            } else if (request instanceof MqttSubscribeRequest) {
-                MqttSubscribeRequest subscribeRequest = (MqttSubscribeRequest) request;
-                if (subscribeRequest.getCallback() != null) {
-                    subscribeRequest.getCallback().onFailure(new Throwable("disconnected"));
-                }
-            } else if (request instanceof MqttUnSubscribeRequest) {
-                MqttUnSubscribeRequest unSubscribeRequest = (MqttUnSubscribeRequest) request;
-                if (unSubscribeRequest.getCallback() != null) {
-                    unSubscribeRequest.getCallback().onFailure(new Throwable("disconnected"));
-                }
+            if (request.getCallback() != null) {
+                request.getCallback().onFailure(new Throwable("disconnected"));
             }
             return;
         }
         mMqttRequestQueue.add(request);
-        sendRequestFromQueueIfConnected();
+        synchronized (mConnectSuccessLock) {
+            sendRequestFromQueueIfConnected();
+        }
     }
 
     /**
      * 连接成功时，处理队列中的待发送请求
      */
-    private synchronized void sendRequestFromQueueIfConnected() {
+    private void sendRequestFromQueueIfConnected() {
         if (mConnectState != MqttConnectState.CONNECTED) {
             QLog.d(TAG, "cannot send request now, will send after connect to server");
             return;
@@ -492,7 +491,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
             if (asyncActionToken.getUserContext() != null) {
                 MqttActionUserContext userContext = ((MqttActionUserContext) asyncActionToken.getUserContext());
                 IMqttActionCallback actionCallback = userContext.getCallback();
-                QLog.d(TAG, "on action fail, type = " + userContext.getActionType() + ", topic = " + userContext.getTopic());
+                QLog.w(TAG, "on action fail, type = " + userContext.getActionType() + ", topic = " + userContext.getTopic());
                 if (actionCallback != null) {
                     actionCallback.onFailure(exception);
                 }

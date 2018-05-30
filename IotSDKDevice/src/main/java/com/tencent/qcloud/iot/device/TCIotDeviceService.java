@@ -1,7 +1,8 @@
 package com.tencent.qcloud.iot.device;
 
-import com.tencent.qcloud.iot.common.QLog;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.device.data.DeviceDataHandler;
+import com.tencent.qcloud.iot.device.data.IDataEventListener;
 import com.tencent.qcloud.iot.device.data.ShadowHandler;
 import com.tencent.qcloud.iot.mqtt.TCIotMqttClient;
 import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
@@ -13,7 +14,6 @@ import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
-import com.tencent.qcloud.iot.device.data.IDataEventListener;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowTopicHelper;
 
@@ -27,6 +27,7 @@ import org.json.JSONObject;
 
 public class TCIotDeviceService {
     private static final String TAG = TCIotDeviceService.class.getSimpleName();
+    private TCMqttConfig mTCMqttConfig;
     private TCIotMqttClient mTCIotMqttClient;
     private ShadowManager mShadowManager;
     private ShadowTopicHelper mShadowTopicHelper;
@@ -38,6 +39,7 @@ public class TCIotDeviceService {
         if (config == null) {
             throw new IllegalArgumentException("config cannot be null!");
         }
+        mTCMqttConfig = config;
         mTCIotMqttClient = new TCIotMqttClient(config);
         mShadowTopicHelper = new ShadowTopicHelper(config.getProductId(), config.getDeviceName());
         mShadowManager = new ShadowManager(mTCIotMqttClient, mShadowTopicHelper);
@@ -62,6 +64,7 @@ public class TCIotDeviceService {
                     //connect后getShadow以得到desired，用来初始化
                     try {
                         mShadowManager.getShadow();
+                        reportDeviceInfo();
                     } catch (JSONException e) {
                         QLog.e(TAG, "getShadow after connect", e);
                     }
@@ -141,6 +144,18 @@ public class TCIotDeviceService {
                     }
                 });
         subscribe(request);
+    }
+
+    /**
+     * 上报SDK版本、deviceName等
+     */
+    private void reportDeviceInfo() throws JSONException {
+        JSONObject deviceInfoObject = new JSONObject();
+        deviceInfoObject.put("product", mTCMqttConfig.getProductId())
+                .put("device", mTCMqttConfig.getDeviceName())
+                .put("sdk-ver", BuildConfig.VERSION_NAME)
+                .put("firm-ver", "android");
+        mShadowManager.reportDeviceInfo(deviceInfoObject);
     }
 
     public void onLocalDataChange(JSONObject localDeviceData) {

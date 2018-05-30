@@ -123,7 +123,7 @@ public class JsonFileData {
 
         private boolean mDeviceSwitch = false;
         private Color mColor = Color.values()[0];
-        private int mBrightness = 0;
+        private double mBrightness = 0;
 
         public boolean isDeviceSwitch() {
             return mDeviceSwitch;
@@ -153,13 +153,13 @@ public class JsonFileData {
             onUserChangeData(genJsonObject(COLOR, mColor.getIndex()), commit);
         }
 
-        public int getBrightness() {
+        public double getBrightness() {
             return mBrightness;
         }
 
-        private void setBrightness(int brightness) {
-            final int min = 0;
-            final int max = 100;
+        private void setBrightness(double brightness) {
+            final double min = 0;
+            final double max = 100;
             if (brightness < min || brightness > max) {
                 throw new IllegalArgumentException("out of range [" + min + ", " + max + "]");
             }
@@ -167,7 +167,7 @@ public class JsonFileData {
             onLocalDataChange();
         }
 
-        public void setBrightnessByUser(int brightness, boolean commit) {
+        public void setBrightnessByUser(double brightness, boolean commit) {
             setBrightness(brightness);
             onUserChangeData(genJsonObject(BRIGHTNESS, mBrightness), commit);
         }
@@ -209,6 +209,7 @@ public class JsonFileData {
 
         /**
          * 解析并处理来自服务端的控制消息
+         *
          * @param key
          * @param obj
          * @return
@@ -239,7 +240,7 @@ public class JsonFileData {
                     }
                     break;
                 case BRIGHTNESS:
-                    int brightness = ((Number) obj).intValue();
+                    double brightness = ((Number) obj).doubleValue();
                     result = mDataControlListener.onControlBrightness(brightness);
                     if (result) {
                         setBrightness(brightness);
@@ -302,12 +303,15 @@ public class JsonFileData {
     public interface IDataControlListener {
 
         boolean onControlDeviceSwitch(boolean deviceSwitch);
+
         boolean onControlColor(Color color);
-        boolean onControlBrightness(int brightness);
+
+        boolean onControlBrightness(double brightness);
     }
 
     public interface ILocalDataListener {
         void onLocalDataChange(JSONObject localData);
+
         void onUserChangeData(JSONObject userDesired, boolean commit);
     }
 }

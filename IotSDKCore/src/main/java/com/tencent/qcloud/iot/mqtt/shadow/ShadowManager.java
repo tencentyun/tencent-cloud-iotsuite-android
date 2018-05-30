@@ -1,6 +1,6 @@
 package com.tencent.qcloud.iot.mqtt.shadow;
 
-import com.tencent.qcloud.iot.common.QLog;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.TCIotMqttClient;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
@@ -114,8 +114,15 @@ public class ShadowManager {
         publishShadowRequest(jsonObject.toString());
     }
 
-    private void publishShadowRequest(String message) {
-        QLog.d(TAG, "publishShadowRequest " + message);
+    public void reportDeviceInfo(JSONObject deviceInfo) throws JSONException {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(SHADOW_JSON_KEY_METHOD, SHADOW_METHOD_UPDATE_FIRM_INFO);
+        jsonObject.put(SHADOW_JSON_KEY_STATE, deviceInfo);
+
+        publishShadowRequest(jsonObject.toString());
+    }
+
+    private void publishShadowRequest(final String message) {
         MqttPublishRequest request = new MqttPublishRequest()
                 .setTopic(mShadowTopicHelper.getUpdateTopic())
                 .setQos(TCIotMqttQos.QOS1)
@@ -123,7 +130,7 @@ public class ShadowManager {
                 .setCallback(new IMqttActionCallback() {
                     @Override
                     public void onSuccess() {
-                        //QLog.d(TAG, "publishShadowRequest successed");
+                        QLog.d(TAG, "publishShadowRequest successed");
                     }
 
                     @Override

@@ -2,13 +2,12 @@ package com.tencent.qcloud.iot.mqtt;
 
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
-
-import java.security.KeyStore;
 
 /**
  * Created by rongerwu on 2018/1/12.
@@ -17,12 +16,15 @@ import java.security.KeyStore;
 
 public abstract class AbstractIotMqttClient {
     private Handler mHandler;
+    private Object mHandlerLock = new Object();
+    private Object mReconnectTaskToken = new Object();
 
     public AbstractIotMqttClient() {
     }
 
     /**
      * 建立mqtt连接
+     *
      * @param connectStateCallback 回调连接状态
      */
     public void connect(final IMqttConnectStateCallback connectStateCallback) {
@@ -50,19 +52,22 @@ public abstract class AbstractIotMqttClient {
 
     /**
      * 用于子类中，连接失败或异常中断时重连
+     *
      * @param delay delay, ms
      */
     protected void reconnect(int delay) {
-        getHandler().postDelayed(new Runnable() {
+        getHandler().removeCallbacksAndMessages(mReconnectTaskToken);
+        getHandler().postAtTime(new Runnable() {
             @Override
             public void run() {
                 reconnectInternal();
             }
-        }, delay);
+        }, mReconnectTaskToken, SystemClock.uptimeMillis() + delay);
     }
 
     /**
      * 向topic发布消息
+     *
      * @param request 请求
      */
     public void publish(final MqttPublishRequest request) {
@@ -76,6 +81,7 @@ public abstract class AbstractIotMqttClient {
 
     /**
      * 订阅topic
+     *
      * @param request 请求
      */
     public void subscribe(final MqttSubscribeRequest request) {
@@ -89,6 +95,7 @@ public abstract class AbstractIotMqttClient {
 
     /**
      * 取消订阅
+     *
      * @param request 请求
      */
     public void unSubscribe(final MqttUnSubscribeRequest request) {
@@ -100,11 +107,13 @@ public abstract class AbstractIotMqttClient {
         });
     }
 
-    protected synchronized Handler getHandler() {
-        if (mHandler == null) {
-            HandlerThread handlerThread = new HandlerThread("TCIotMqttClient thread");
-            handlerThread.start();
-            mHandler = new Handler(handlerThread.getLooper());
+    protected Handler getHandler() {
+        synchronized (mHandlerLock) {
+            if (mHandler == null) {
+                HandlerThread handlerThread = new HandlerThread("TCIotMqttClient thread");
+                handlerThread.start();
+                mHandler = new Handler(handlerThread.getLooper());
+            }
         }
         return mHandler;
     }

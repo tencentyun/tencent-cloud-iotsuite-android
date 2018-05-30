@@ -2,7 +2,7 @@ package com.tencent.qcloud.iot.device.data;
 
 import android.support.annotation.NonNull;
 
-import com.tencent.qcloud.iot.common.QLog;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
 
 import org.json.JSONException;
@@ -136,7 +136,7 @@ public class DeviceDataHandler {
         if (commit) {
             JSONObject localDeviceData = cloneJSONObject(mLocalDeviceData);
             ArrayList<String> readyForReportKeys = new ArrayList<>();
-            Iterator<String> desiredKeys = mCachedDesired.keys();
+            Iterator<String> desiredKeys = mUserDesiredToReport.keys();
             while (desiredKeys.hasNext()) {
                 String key = desiredKeys.next();
                 if (localDeviceData.has(key)) {

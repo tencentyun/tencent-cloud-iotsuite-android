@@ -1,6 +1,6 @@
 package com.tencent.qcloud.iot.device.data;
 
-import com.tencent.qcloud.iot.common.QLog;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
 
 import org.json.JSONException;
@@ -81,7 +81,7 @@ public class ShadowHandler {
                 // report or delete success
             }
         } else {
-            QLog.e(TAG, "on shadow reply, error, code = " + code + ", status = " + status);
+            QLog.w(TAG, "on shadow reply, error, code = " + code + ", status = " + status);
         }
     }
 

@@ -6,13 +6,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 
-import com.tencent.qcloud.iot.common.QLog;
-import com.tencent.qcloud.iot.mqtt.certificate.CertificateProvider;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.sample.fragment.ConnectionFragment;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyStore;
 
 /**
  * Created by rongerwu on 2018/1/15.
@@ -32,17 +27,15 @@ public class MainActivity extends BaseActivity {
 
     private void displayView() {
         Fragment fragment = new ConnectionFragment();
-        displayFragment(fragment, "title");
+        displayFragment(fragment);
     }
 
-    private void displayFragment(Fragment fragment, String title) {
+    private void displayFragment(Fragment fragment) {
         if (fragment != null) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.container_body, fragment);
             fragmentTransaction.commit();
-
-            getSupportActionBar().setTitle(title);
         }
     }
 }

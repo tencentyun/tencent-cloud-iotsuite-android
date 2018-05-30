@@ -4,8 +4,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
 
-import com.tencent.qcloud.iot.common.QLog;
 import com.tencent.qcloud.iot.device.TCIotDeviceService;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
@@ -290,6 +290,9 @@ public class Connection implements Parcelable {
     }
 
     public JsonFileData.DataTemplate getDataTemplate() {
+        if (mDeviceDataHelper == null) {
+            return null;
+        }
         return mDeviceDataHelper.getDataTemplate();
     }
 

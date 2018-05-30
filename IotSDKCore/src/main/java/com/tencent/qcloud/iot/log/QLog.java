@@ -1,4 +1,4 @@
-package com.tencent.qcloud.iot.common;
+package com.tencent.qcloud.iot.log;
 
 import android.util.Log;
 

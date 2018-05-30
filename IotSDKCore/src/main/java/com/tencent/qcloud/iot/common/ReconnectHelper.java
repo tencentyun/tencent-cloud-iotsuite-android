@@ -35,10 +35,12 @@ public class ReconnectHelper {
 
     /**
      * 获取下一次重连的间隔时长.
+     *
      * @return 返回时长，ms
      */
     public int getRetryDelay() {
-        return (int) Math.min(mMinRetryTimeMs * (long) Math.pow(2, mRetryTimes), mMaxRetryTimeMs);
+        int exponent = mRetryTimes <= 32 ? mRetryTimes : 32;
+        return (int) Math.min(mMinRetryTimeMs * (long) Math.pow(2, exponent), mMaxRetryTimeMs);
     }
 
     public void addRetryTimes() {

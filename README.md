@@ -15,7 +15,7 @@ IotSDKDevice是腾讯云iotsuite的设备端SDK，DeviceSample是设备端的Dem
 
 1、直接依赖jcenter上的库（建议）
 
-    implementation 'com.tencent.qcloud:iot-android-sdk-device:2.0.0'
+    implementation 'com.tencent.qcloud:iot-android-sdk-device:2.1.0'
 
 2、下载SDK，然后本地依赖
 

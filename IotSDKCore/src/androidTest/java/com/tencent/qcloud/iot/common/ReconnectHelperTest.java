@@ -1,5 +1,7 @@
 package com.tencent.qcloud.iot.common;
 
+import android.util.Log;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -9,6 +11,7 @@ import org.junit.Test;
  */
 
 public class ReconnectHelperTest {
+    private static final String TAG = ReconnectHelperTest.class.getSimpleName();
     private ReconnectHelper mReconnectHelper;
 
     public ReconnectHelperTest() {
@@ -39,6 +42,17 @@ public class ReconnectHelperTest {
             mReconnectHelper.addRetryTimes();
         }
         Assert.assertEquals(mReconnectHelper.getRetryDelay(), 10000);
+    }
+
+    @Test
+    public void testGetRetryDelay2() {
+        mReconnectHelper.setMinRetryTimeMs(1000);
+        mReconnectHelper.setMaxRetryTimeMs(10000);
+        for (int i = 0; i < 10000; i++) {
+            Log.d(TAG, "retry times = " + i + ", retryDelay = " + mReconnectHelper.getRetryDelay());
+            Assert.assertTrue(mReconnectHelper.getRetryDelay() >= 1000);
+            mReconnectHelper.addRetryTimes();
+        }
     }
 
     @Test
