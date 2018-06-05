@@ -5,20 +5,22 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.tencent.qcloud.iot.device.TCIotDeviceService;
+import com.tencent.qcloud.iot.device.datatemplate.DataTemplate;
+import com.tencent.qcloud.iot.device.datatemplate.JsonFileData;
 import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
 import com.tencent.qcloud.iot.mqtt.constant.MqttConnectState;
+import com.tencent.qcloud.iot.mqtt.constant.TCConstants;
 import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
 import com.tencent.qcloud.iot.sample.model.Subscribe;
-import com.tencent.qcloud.iot.sample.qcloud.DeviceDataHelper;
-import com.tencent.qcloud.iot.sample.qcloud.JsonFileData;
-import com.tencent.qcloud.iot.sample.qcloud.ProductInfoHelper;
+import com.tencent.qcloud.iot.sample.utils.ByteUtil;
+import com.tencent.qcloud.iot.utils.StringUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,11 +53,7 @@ public class Connection implements Parcelable {
      */
     private IMessageNotifyListener mMessageNotifyListener;
 
-    private ProductInfoHelper mProductInfoHelper;
-    private DeviceDataHelper mDeviceDataHelper;
-
     public Connection() {
-        mProductInfoHelper = new ProductInfoHelper();
         mSubscribesMap = new HashMap<>();
         QLog.setLogLevel(QLog.QLOG_LEVEL_DEBUG);
     }
@@ -90,11 +88,11 @@ public class Connection implements Parcelable {
      * @param deviceName   不可以为null
      * @param deviceSecret 直连模式下可以为null, token模式下不可以为null.
      */
-    public void connect(String deviceName, String deviceSecret, JsonFileData.IDataControlListener dataControlListener) {
+    public void connect(String deviceName, String deviceSecret, DataTemplate.IDataControlListener dataControlListener) {
         if (mTCIotDeviceService != null) {
             mTCIotDeviceService.disconnect();
         }
-        mTCMqttConfig = mProductInfoHelper.genTCMqttConfig();
+        mTCMqttConfig = TCIotDeviceService.genTCMqttConfig();
         mTCMqttConfig.setDeviceName(deviceName);
         if (deviceSecret != null) {
             mTCMqttConfig.setDeviceSecret(deviceSecret);
@@ -104,16 +102,15 @@ public class Connection implements Parcelable {
                 .setMinRetryTimeMs(1000)
                 .setMaxRetryTimeMs(20000)
                 .setMaxRetryTimes(5000);
+        //请求token时默认是https，可以在此处设为Http
+        //mTCMqttConfig.setTokenScheme(TCConstants.Scheme.HTTP);
 
-        connect(mTCMqttConfig);
-
-        mDeviceDataHelper = new DeviceDataHelper(mTCIotDeviceService, mProductInfoHelper.getJsonFileData().getDataTemplate());
-        //设置监听来自服务端的控制消息
-        mDeviceDataHelper.setDataControlListener(dataControlListener);
+        connect(mTCMqttConfig, dataControlListener);
     }
 
-    private void connect(TCMqttConfig config) {
+    private void connect(TCMqttConfig config, DataTemplate.IDataControlListener dataControlListener) {
         mTCIotDeviceService = new TCIotDeviceService(config);
+        mTCIotDeviceService.setDataControlListener(dataControlListener);
         //建立mqtt连接并监听连接结果
         mTCIotDeviceService.connect(new IMqttConnectStateCallback() {
             @Override
@@ -151,12 +148,22 @@ public class Connection implements Parcelable {
     }
 
     /**
-     * 发布消息到topic
+     * 发布字符串消息到topic
      *
      * @param topic
      * @param msg
      */
     public void publish(String topic, String msg) {
+        publish(topic, msg.getBytes(StringUtil.UTF8));
+    }
+
+    /**
+     * 发布byte（可理解为二进制）消息流到topic
+     *
+     * @param topic
+     * @param msg
+     */
+    public void publish(String topic, byte[] msg) {
         if (mTCIotDeviceService == null || mTCMqttConfig == null) {
             return;
         }
@@ -175,7 +182,7 @@ public class Connection implements Parcelable {
 
                     @Override
                     public void onFailure(Throwable exception) {
-                        notifyMessage("publish failed");
+                        notifyMessage("publish failed: " + exception);
                     }
                 });
         mTCIotDeviceService.publish(request);
@@ -262,7 +269,9 @@ public class Connection implements Parcelable {
     private IMqttMessageListener mMqttMessageListener = new IMqttMessageListener() {
         @Override
         public void onMessageArrived(String topic, String message) {
-            notifyMessage("onMessageArrived, topic = " + topic + ", message = " + message);
+            //如果是二进制数据，调用getBytes转化为byte[]
+            byte[] byteMessage = message.getBytes(StringUtil.UTF8);
+            notifyMessage("onMessageArrived, topic = " + topic + ", message = " + message + "\n byteMessage = " + ByteUtil.toBinaryString(byteMessage));
         }
     };
 
@@ -286,14 +295,17 @@ public class Connection implements Parcelable {
     }
 
     public JsonFileData getJsonFileData() {
-        return mProductInfoHelper.getJsonFileData();
-    }
-
-    public JsonFileData.DataTemplate getDataTemplate() {
-        if (mDeviceDataHelper == null) {
+        if (mTCIotDeviceService == null) {
             return null;
         }
-        return mDeviceDataHelper.getDataTemplate();
+        return mTCIotDeviceService.getJsonFileData();
+    }
+
+    public DataTemplate getDataTemplate() {
+        if (mTCIotDeviceService == null) {
+            return null;
+        }
+        return mTCIotDeviceService.getDataTemplate();
     }
 
     public Connection setSubscribeStateListener(ISubscribeStateListener subscribeStateListener) {

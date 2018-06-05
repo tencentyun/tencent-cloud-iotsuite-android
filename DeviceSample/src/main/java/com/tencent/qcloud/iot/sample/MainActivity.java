@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.view.WindowManager;
 
 import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.sample.fragment.ConnectionFragment;
@@ -21,6 +22,7 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         QLog.setLogLevel(QLog.QLOG_LEVEL_DEBUG);
         displayView();
     }

@@ -1,7 +1,7 @@
 package com.tencent.qcloud.iot.mqtt;
 
-import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.common.ReconnectHelper;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
@@ -100,7 +100,8 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
         if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_DIRECT) {//直连模式，直接mqtt连接.
             mqttConnect();
         } else if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_TOKEN) {//token模式，先请求token，再mqtt连接.
-            TokenHelper tokenHelper = new TokenHelper(mTCMqttConfig.getRegion(), mTCMqttConfig.getProductId(), mTCMqttConfig.getDeviceName(), mTCMqttConfig.getDeviceSecret());
+            TokenHelper tokenHelper = new TokenHelper(mTCMqttConfig.getRegion(), mTCMqttConfig.getProductId(), mTCMqttConfig.getDeviceName(), mTCMqttConfig.getDeviceSecret(),
+                    mTCMqttConfig.getTokenScheme());
             final String clientId = mMqttClientId;
             tokenHelper.getToken(clientId, new TokenHelper.ITokenListener() {
                 @Override
@@ -381,6 +382,10 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
             }
             return;
         }
+        if (mMqttRequestQueue.size() > 10000) {
+            QLog.w(TAG, "too much request: " + mMqttRequestQueue.size() + ", discard current");
+            return;
+        }
         mMqttRequestQueue.add(request);
         synchronized (mConnectSuccessLock) {
             sendRequestFromQueueIfConnected();
@@ -399,7 +404,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
         while ((request = mMqttRequestQueue.poll()) != null) {
             if (request instanceof MqttPublishRequest) {
                 MqttPublishRequest publishRequest = (MqttPublishRequest) request;
-                mqttPublish(publishRequest.getMsg().getBytes(StringUtil.UTF8), publishRequest.getTopic(), publishRequest.getQos(), publishRequest.getCallback());
+                mqttPublish(publishRequest.getMsg(), publishRequest.getTopic(), publishRequest.getQos(), publishRequest.getCallback());
             } else if (request instanceof MqttSubscribeRequest) {
                 MqttSubscribeRequest subscribeRequest = (MqttSubscribeRequest) request;
                 mqttSubscribe(subscribeRequest.getTopic(), subscribeRequest.getQos(), subscribeRequest.getCallback());
@@ -409,6 +414,14 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
                 mqttUnSubscribe(unSubscribeRequest.getTopic(), unSubscribeRequest.getCallback());
             } else {
                 throw new TCMqttClientException("invalid request type");
+            }
+
+            //一定程度上缓解发送压力
+            int sleepMillis = Math.min((mMqttRequestQueue.size() + 1) * 20, 200);
+            try {
+                Thread.sleep(sleepMillis);
+            } catch (InterruptedException e) {
+                QLog.w(TAG, "sleep millis = " + sleepMillis, e);
             }
         }
     }
@@ -425,6 +438,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
             mMqttClient.publish(topic, message, userContext, mPubSubListener);
         } catch (MqttException e) {
             if (callback != null) {
+                QLog.e(TAG, "mqtt publish failure: " + e);
                 callback.onFailure(e);
             }
         }

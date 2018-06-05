@@ -101,7 +101,7 @@ public class ShadowHandler {
             JSONObject state = payload.getJSONObject(SHADOW_JSON_KEY_STATE);
             JSONObject metadata = payload.getJSONObject(SHADOW_JSON_KEY_METADATE);
             JSONObject desired = state.getJSONObject(SHADOW_JSON_KEY_DESIRED);
-            mDeviceDataHandler.handleDeisredForControl(desired);
+            mDeviceDataHandler.handleDeisredForControl(desired, false);
         } else {
             QLog.e(TAG, "onControl error, message = " + jsonObject.toString());
         }

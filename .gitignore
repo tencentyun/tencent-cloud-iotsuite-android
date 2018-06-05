@@ -5,3 +5,4 @@
 /local.properties
 /tencent-cloud-iotsuite-android.iml
 JsonFileData.java
+TCDataConstant.java

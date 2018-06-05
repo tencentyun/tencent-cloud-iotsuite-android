@@ -1,4 +1,4 @@
-package com.tencent.qcloud.iot.sample;
+package com.tencent.qcloud.iot.sample.constant;
 
 /**
  * Created by rongerwu on 2018/1/16.

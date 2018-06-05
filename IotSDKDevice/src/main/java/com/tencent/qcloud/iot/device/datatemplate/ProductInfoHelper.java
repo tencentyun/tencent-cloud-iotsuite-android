@@ -1,6 +1,5 @@
-package com.tencent.qcloud.iot.sample.qcloud;
+package com.tencent.qcloud.iot.device.datatemplate;
 
-import com.tencent.qcloud.iot.device.TCIotDeviceService;
 import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
 
 /**
@@ -11,12 +10,13 @@ import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
 public class ProductInfoHelper {
     private JsonFileData mJsonFileData;
 
-    public ProductInfoHelper() {
-        mJsonFileData = JsonFileData.getInstance();
+    public ProductInfoHelper(JsonFileData jsonFileData) {
+        mJsonFileData = jsonFileData;
     }
 
     /**
-     *根据产品信息，生成配置类实例
+     * 根据产品信息，生成配置类实例
+     *
      * @return
      */
     public TCMqttConfig genTCMqttConfig() {
@@ -39,13 +39,5 @@ public class ProductInfoHelper {
         } else {
             throw new IllegalStateException("illegal auth type = " + authType);
         }
-    }
-
-    /**
-     * 返回JsonFileData实例
-     * @return
-     */
-    public JsonFileData getJsonFileData() {
-        return mJsonFileData;
     }
 }

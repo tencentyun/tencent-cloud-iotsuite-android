@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
+import com.tencent.qcloud.iot.utils.StringUtil;
 
 /**
  * Created by rongerwu on 2018/1/12.
@@ -11,17 +12,26 @@ import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
  */
 
 public class MqttPublishRequest extends BaseMqttRequest<MqttPublishRequest> {
-    private String mMsg = "msg";
+    private byte[] mMsg = new byte[0];
     private String mTopic = "topic";
     private TCIotMqttQos mQos = TCIotMqttQos.QOS0;
 
-    public String getMsg() {
+    public byte[] getMsg() {
         return mMsg;
     }
 
     @NonNull
-    public MqttPublishRequest setMsg(String msg) {
+    public MqttPublishRequest setMsg(final String msg) {
         if (TextUtils.isEmpty(msg)) {
+            throw new IllegalArgumentException("msg cannot be empty");
+        }
+        mMsg = msg.getBytes(StringUtil.UTF8);
+        return this;
+    }
+
+    @NonNull
+    public MqttPublishRequest setMsg(final byte[] msg) {
+        if (msg == null) {
             throw new IllegalArgumentException("msg cannot be empty");
         }
         mMsg = msg;
@@ -33,7 +43,7 @@ public class MqttPublishRequest extends BaseMqttRequest<MqttPublishRequest> {
     }
 
     @NonNull
-    public MqttPublishRequest setTopic(String topic) {
+    public MqttPublishRequest setTopic(final String topic) {
         if (TextUtils.isEmpty(topic)) {
             throw new IllegalArgumentException("topic cannot be empty");
         }
@@ -45,7 +55,7 @@ public class MqttPublishRequest extends BaseMqttRequest<MqttPublishRequest> {
         return mQos;
     }
 
-    public MqttPublishRequest setQos(TCIotMqttQos qos) {
+    public MqttPublishRequest setQos(final TCIotMqttQos qos) {
         mQos = qos;
         return this;
     }

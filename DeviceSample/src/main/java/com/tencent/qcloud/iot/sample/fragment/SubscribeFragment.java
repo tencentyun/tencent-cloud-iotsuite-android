@@ -16,7 +16,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.tencent.qcloud.iot.sample.Connection;
-import com.tencent.qcloud.iot.sample.Constants;
+import com.tencent.qcloud.iot.sample.constant.Constants;
 import com.tencent.qcloud.iot.sample.R;
 import com.tencent.qcloud.iot.sample.components.SubscrbeListItemAdapter;
 import com.tencent.qcloud.iot.sample.model.Subscribe;

@@ -1,51 +1,61 @@
 {
   "product_id": "iot-pbppj8jy",
   "product_key": "mqtt-4tevxlx8e",
-  "product_secret": "",
-  "app_id": 0,
+  "app_id": 1254389479,
   "region": "gz",
-  "name": "智能灯",
+  "name": "智能灯token",
   "description": "可远程开关、调节亮度和颜色的智能灯。",
   "domain": "mqtt-4tevxlx8e.ap-guangzhou.mqtt.tencentcloudmq.com",
   "standard": 3,
   "auth_type": 1,
+  "data_protocol": "template",
   "data_template": [
     {
       "name": "device_switch",
+      "desc": "开关",
       "mode": "r",
       "type": "bool",
       "range": [
-        false,
-        true
-      ],
-      "desc": "开关"
+        true,
+        false
+      ]
     },
     {
       "name": "color",
-      "mode": "w",
+      "desc": "颜色",
+      "mode": "rw",
       "type": "enum",
       "range": [
         "red",
         "green",
         "blue"
-      ],
-      "desc": "颜色"
+      ]
     },
     {
       "name": "brightness",
+      "desc": "亮度",
       "mode": "rw",
       "type": "number",
       "range": [
         0,
         100
-      ],
-      "desc": "亮度"
+      ]
+    },
+    {
+      "name": "alias_name",
+      "desc": "别名",
+      "mode": "rw",
+      "type": "string",
+      "range": [
+        0,
+        50
+      ]
     }
   ],
   "deleted": 0,
   "message": "",
-  "create_time": "2018-01-12 00:00:00",
-  "update_time": "2018-03-26 00:00:00",
-  "username": "username",
-  "password": "password"
+  "create_time": "2018-04-09 11:11:43",
+  "update_time": "2018-06-01 20:10:20",
+  "username": "AKIDNgssgTw1pW2NahKR4oRt9D6ofNuGgSKG",
+  "password": "iHSkTal4PQ2IucQtD3W4FD+RwPO66x0NjKKfmRgPkdE="
 }

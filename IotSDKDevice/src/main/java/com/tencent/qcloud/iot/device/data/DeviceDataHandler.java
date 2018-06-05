@@ -18,7 +18,7 @@ import java.util.Iterator;
 
 /**
  * 为了避免用户外部调用connect和disconnect导致缓存的数据被清空，设计为单例。
- *
+ * <p>
  * desire处理逻辑：
  * 1、不把服务端desired置为null。
  * 2、客户端缓存收到的desired（包括上线时get到的desired和包含在control命令里的desired），假设是mCachedDesired（假如收到2次，第一次是{A:1}，第二次是{B:2}，则保存的是{A:1, B:2}）
@@ -73,9 +73,11 @@ public class DeviceDataHandler {
         if (desired == null) {
             throw new IllegalArgumentException("handleDesiredForInit error");
         }
+        //forInit标识是否用于SDK启动后第一次设备初始化
+        boolean forInit = (mCachedDesired.length() == 0);
         JSONObject diffDesired = getDiffDesired(mCachedDesired, desired);
         if (desired.length() > 0) {
-            handleDeisredForControl(diffDesired);
+            handleDeisredForControl(diffDesired, forInit);
         }
     }
 
@@ -85,7 +87,7 @@ public class DeviceDataHandler {
      * @param desired desired对象
      * @throws JSONException 异常
      */
-    public void handleDeisredForControl(JSONObject desired) throws JSONException {
+    public void handleDeisredForControl(JSONObject desired, boolean forInit) throws JSONException {
         if (desired == null) {
             throw new IllegalArgumentException("handleDeisredForControl error");
         }
@@ -102,7 +104,7 @@ public class DeviceDataHandler {
             }
             boolean diff = !desired.get(key).equals(localDeviceData.get(key));
             if (mDataEventListener != null) {
-                mDataEventListener.onControl(key, desired.get(key), diff);
+                mDataEventListener.onControl(key, desired.get(key), diff, forInit);
             }
             readyForReportKeys.add(key);
         }

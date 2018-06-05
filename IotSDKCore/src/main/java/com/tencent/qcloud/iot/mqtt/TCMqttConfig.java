@@ -3,6 +3,7 @@ package com.tencent.qcloud.iot.mqtt;
 import android.text.TextUtils;
 
 import com.tencent.qcloud.iot.common.ReconnectHelper;
+import com.tencent.qcloud.iot.mqtt.constant.TCConstants;
 
 import java.security.KeyStore;
 
@@ -86,6 +87,8 @@ public class TCMqttConfig {
      * 检测mqtt连接是否存活的间隔
      */
     private int mKeepAliveSeconds = DEFAULT_KEEP_ALIVE_SECONDS;
+
+    private String mTokenScheme = TCConstants.Scheme.HTTPS;
 
     public TCMqttConfig(String mqttHost, String productKey, String productId, String region) {
         if (TextUtils.isEmpty(mqttHost)) {
@@ -233,6 +236,18 @@ public class TCMqttConfig {
 
     public TCMqttConfig setKeepAliveSeconds(int keepAliveSeconds) {
         mKeepAliveSeconds = keepAliveSeconds;
+        return this;
+    }
+
+    public String getTokenScheme() {
+        return mTokenScheme;
+    }
+
+    public TCMqttConfig setTokenScheme(String tokenScheme) {
+        if (!tokenScheme.equals(TCConstants.Scheme.HTTPS) && !tokenScheme.equals(TCConstants.Scheme.HTTP)) {
+            throw new IllegalArgumentException("illegal token scheme: " + tokenScheme);
+        }
+        mTokenScheme = tokenScheme;
         return this;
     }
 

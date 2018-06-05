@@ -6,6 +6,7 @@ import android.util.Base64;
 
 import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.TCMqttClientException;
+import com.tencent.qcloud.iot.mqtt.constant.TCConstants;
 import com.tencent.qcloud.iot.mqtt.http.AsyncHttpURLConnection;
 import com.tencent.qcloud.iot.utils.StringUtil;
 import com.tencent.qcloud.iot.utils.TCUtil;
@@ -41,16 +42,17 @@ public class TokenHelper {
     private String mProductId;
     private String mDeviceName;
     private String mDeviceSecret;
-    private final String mScheme = "https";
+    private String mScheme;
 
-    public TokenHelper(String region, String productId, String deviceName, String deviceSecret) {
-        if (region == null || productId == null || deviceName == null || deviceSecret == null) {
-            throw new IllegalArgumentException("region / productId / deviceName / deviceSecret cannot be null");
+    public TokenHelper(String region, String productId, String deviceName, String deviceSecret, String scheme) {
+        if (TextUtils.isEmpty(region) || TextUtils.isEmpty(productId) || TextUtils.isEmpty(deviceName) || TextUtils.isEmpty(deviceSecret) || TextUtils.isEmpty(scheme)) {
+            throw new IllegalArgumentException("region / productId / deviceName / deviceSecret / scheme cannot be empty");
         }
         mRegion = region;
         mProductId = productId;
         mDeviceName = deviceName;
         mDeviceSecret = deviceSecret;
+        mScheme = scheme;
     }
 
     public void getToken(final String clientId, final ITokenListener listener) {
@@ -58,7 +60,7 @@ public class TokenHelper {
             throw new IllegalArgumentException("clientId is null");
         }
         //先跟服务器同步时间
-        AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, TCUtil.getTimeUrl(mScheme, mRegion), null,
+        AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, TCUtil.getTimeUrl(TCConstants.Scheme.HTTP, mRegion), null,
                 new AsyncHttpURLConnection.AsyncHttpEvents() {
                     @Override
                     public void onHttpError(String errorMessage) {
@@ -102,7 +104,7 @@ public class TokenHelper {
                     }
                     return;
                 }
-                QLog.d(TAG, "get token complete, response = " + response);
+                //QLog.d(TAG, "get token complete, response = " + response);
                 try {
                     JSONObject responseJson = new JSONObject(response);
                     int code = responseJson.getInt("returnCode");

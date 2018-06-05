@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.tencent.qcloud.iot.sample.Connection;
-import com.tencent.qcloud.iot.sample.Constants;
+import com.tencent.qcloud.iot.sample.constant.Constants;
 import com.tencent.qcloud.iot.sample.MainActivity;
 import com.tencent.qcloud.iot.sample.R;
 
