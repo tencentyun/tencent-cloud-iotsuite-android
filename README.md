@@ -154,7 +154,7 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
 
 ### IotSDKDevice部分
 
-腾讯云IotSDKDevice提供mqtt connect、disconnec、subscribe、unsubscribe、publish 能力，另外提供失败重连的参数配置，相应的调用示例可以参见Demo中的Connection.java。
+腾讯云IotSDKDevice提供mqtt connect、disconnec、subscribe、unsubscribe、publish 能力，提供数据点监听及操作的能力，另外提供失败重连的参数配置，相应的调用示例可以参见Demo中的Connection.java。
 
 #### mqtt部分
 
@@ -192,6 +192,43 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
 
         void setMqttMessageListener(IMqttMessageListener listener)
 
+#### 产品信息部分
+
+首先通过 TCIotDeviceService 类中 getJsonFileData 接口获取到 JsonFileData 对象实例，然后就可以调用 JsonFileData 中的get接口得到产品信息。示例如下：
+
+- 获取产品信息
+
+    ```
+        JsonFileData jsonFileData = mTCIotDeviceService.getJsonFileData();
+        jsonFileData.getProductId();
+        jsonFileData.getProductKey();
+        ......
+    ```
+
+- 根据产品信息，生成配置类实例 TCMqttConfig
+
+        mTCMqttConfig = TCIotDeviceService.genTCMqttConfig();
+
+#### 数据点部分
+
+TCIotDeviceService 和 DataTemplate 提供数据点功能接口。
+
+- 监听服务端对数据点的控制消息
+
+        void setDataControlListener(DataTemplate.IDataControlListener dataControlListener)
+
+- 用户主动修改数据点的值
+
+    假如用户手动控制了设备端导致设备端的状态变化，则需要修改对应数据点的值，以触发上报到服务器。示例如下：
+
+    ```
+        DataTemplate dataTemplate = mTCIotDeviceService.getDataTemplate();
+        //第二个参数表示是否立即上报服务端。如果需要设置多个数据点的值，建议只在修改最后一个数据点值时设为true，这样就只会上报一次，避免频繁上报。
+        dataTemplate.setDataPointByUser(TCDataConstant.BRIGHTNESS, 15.5, false);
+        ......
+        dataTemplate.setDataPointByUser(TCDataConstant.COLOR, TCDataConstant.COLOR_BLUE, true);
+    ```
+
 #### 其他
 
 - 设置log等级
@@ -216,47 +253,7 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
 
     因存在设备可能无法同步网络时钟等问题导致请求https时返回证书过期问题，提供http请求token的方式：
 
-        //请求token时默认是https，可以在此处设为Http
+        //请求token时默认是https，可以在此处设为http
         mTCMqttConfig.setTokenScheme(TCConstants.Scheme.HTTP);
 
-### 产品信息及数据点
-
-产品信息和数据点信息包含在 JsonFileData.java 和 DataTemplate.java 中。
-
-#### 产品信息部分
-
-首先通过 TCIotDeviceService 类中 getJsonFileData 接口获取到 JsonFileData 对象实例，然后就可以调用 JsonFileData 中的get接口得到产品信息。示例如下：
-
-- 获取产品信息
-
-    ```
-        JsonFileData jsonFileData = mTCIotDeviceService.getJsonFileData();
-        jsonFileData.getProductId();
-        jsonFileData.getProductKey();
-        ......
-    ```
-
-- 根据产品信息，生成配置类实例 TCMqttConfig
-
-        mTCMqttConfig = TCIotDeviceService.genTCMqttConfig();
-
-#### 数据点部分
-
-TCIotDeviceService 提供数据点功能接口。
-
-- 监听服务端对数据点的控制消息
-
-        void setDataControlListener(DataTemplate.IDataControlListener dataControlListener)
-
-- 用户主动修改数据点的值
-
-    假如用户手动控制了设备端导致设备端的状态变化，则需要修改对应数据点的值，以触发上报到服务器。示例如下：
-
-    ```
-        DataTemplate dataTemplate = mTCIotDeviceService.getDataTemplate();
-        //第二个参数表示是否立即上报服务端。如果需要设置多个数据点的值，建议只在修改最后一个数据点值时设为true，这样就只会上报一次，避免频繁上报。
-        dataTemplate.setDataPointByUser(TCDataConstant.BRIGHTNESS, 15.5, false);
-        ......
-        dataTemplate.setDataPointByUser(TCDataConstant.COLOR, TCDataConstant.COLOR_BLUE, true);
-    ```
 
