@@ -1,4 +1,4 @@
-package com.tencent.qcloud.iot.mqtt.shadow;
+package com.tencent.qcloud.iot.mqtt;
 
 import android.text.TextUtils;
 
@@ -7,11 +7,11 @@ import android.text.TextUtils;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 
-public class ShadowTopicHelper {
+public class TopicHelper {
     private String mProductId;
     private String mDeviceName;
 
-    public ShadowTopicHelper(String productId, String deviceName) {
+    public TopicHelper(String productId, String deviceName) {
         if (TextUtils.isEmpty(productId) || TextUtils.isEmpty(deviceName)) {
             throw new IllegalArgumentException("productId and deviceName cannot be empty");
         }
@@ -19,11 +19,19 @@ public class ShadowTopicHelper {
         mDeviceName = deviceName;
     }
 
-    public String getGetTopic() {
+    public String getShadowGetTopic() {
         return String.format("shadow/get/%s/%s", mProductId, mDeviceName);
     }
 
-    public String getUpdateTopic() {
+    public String getShadowUpdateTopic() {
         return String.format("shadow/update/%s/%s", mProductId, mDeviceName);
+    }
+
+    public String getOtaGetTopic() {
+        return String.format("ota/get/%s/%s", mProductId, mDeviceName);
+    }
+
+    public String getOtaUpdateTopic() {
+        return String.format("ota/update/%s/%s", mProductId, mDeviceName);
     }
 }

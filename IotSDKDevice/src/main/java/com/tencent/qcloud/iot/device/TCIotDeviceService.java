@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.tencent.qcloud.iot.device.data.DeviceDataHandler;
 import com.tencent.qcloud.iot.device.data.IDataEventListener;
+import com.tencent.qcloud.iot.device.data.OtaHandler;
 import com.tencent.qcloud.iot.device.data.ShadowHandler;
 import com.tencent.qcloud.iot.device.datatemplate.DataTemplate;
 import com.tencent.qcloud.iot.device.datatemplate.JsonFileData;
@@ -13,16 +14,17 @@ import com.tencent.qcloud.iot.device.utils.FileUtil;
 import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.TCIotMqttClient;
 import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
+import com.tencent.qcloud.iot.mqtt.TopicHelper;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
 import com.tencent.qcloud.iot.mqtt.constant.MqttConnectState;
 import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
+import com.tencent.qcloud.iot.mqtt.ota.OtaManager;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
 import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
-import com.tencent.qcloud.iot.mqtt.shadow.ShadowTopicHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,9 +43,11 @@ public class TCIotDeviceService {
     private TCMqttConfig mTCMqttConfig;
     private TCIotMqttClient mTCIotMqttClient;
     private ShadowManager mShadowManager;
-    private ShadowTopicHelper mShadowTopicHelper;
+    private OtaManager mOtaManager;
+    private TopicHelper mTopicHelper;
     private IMqttMessageListener mMqttMessageListener;
     private ShadowHandler mShadowHandler;
+    private OtaHandler mOtaHandler;
     private DeviceDataHandler mDeviceDataHandler;
     private static JsonFileData sJsonFileData;
     private DataTemplate mDataTemplate;
@@ -81,10 +85,12 @@ public class TCIotDeviceService {
 
         mTCMqttConfig = config;
         mTCIotMqttClient = new TCIotMqttClient(config);
-        mShadowTopicHelper = new ShadowTopicHelper(config.getProductId(), config.getDeviceName());
-        mShadowManager = new ShadowManager(mTCIotMqttClient, mShadowTopicHelper);
+        mTopicHelper = new TopicHelper(config.getProductId(), config.getDeviceName());
+        mShadowManager = new ShadowManager(mTCIotMqttClient, config, mTopicHelper);
+        mOtaManager = new OtaManager(mTCIotMqttClient, mTopicHelper);
         mDeviceDataHandler = DeviceDataHandler.getInstance(mShadowManager);
         mShadowHandler = new ShadowHandler(mDeviceDataHandler);
+        mOtaHandler = new OtaHandler();
 
         //监听来自服务端的控制消息
         mDeviceDataHandler.setDataEventListener(new IDataEventListener() {
@@ -149,8 +155,10 @@ public class TCIotDeviceService {
             @Override
             public void onMessageArrived(String topic, String message) {
                 //影子消息在内部处理
-                if (topic.equals(mShadowTopicHelper.getGetTopic())) {
+                if (topic.equals(mTopicHelper.getShadowGetTopic())) {
                     mShadowHandler.parseShadowMessage(message);
+                } else if (topic.equals(mTopicHelper.getOtaGetTopic())) {
+                    mOtaHandler.parseMessage(message);
                 } else {
                     if (mMqttMessageListener != null) {
                         mMqttMessageListener.onMessageArrived(topic, message);
@@ -158,7 +166,8 @@ public class TCIotDeviceService {
                 }
             }
         });
-        subscribeShadowMessage();
+        subscribeMessage(mTopicHelper.getShadowGetTopic());
+        subscribeMessage(mTopicHelper.getOtaGetTopic());
     }
 
     /**
@@ -196,21 +205,21 @@ public class TCIotDeviceService {
     }
 
     /**
-     * 订阅shadow消息
+     * 订阅消息
      */
-    private void subscribeShadowMessage() {
+    private void subscribeMessage(final String topic) {
         MqttSubscribeRequest request = new MqttSubscribeRequest()
-                .setTopic(mShadowTopicHelper.getGetTopic())
+                .setTopic(topic)
                 .setQos(TCIotMqttQos.QOS1)
                 .setCallback(new IMqttActionCallback() {
                     @Override
                     public void onSuccess() {
-                        //QLog.d(TAG, "setShadowMessageListener successed");
+
                     }
 
                     @Override
                     public void onFailure(Throwable exception) {
-                        QLog.e(TAG, "setShadowMessageListener failed", exception);
+                        QLog.e(TAG, "subscribe failed, topic = " + topic, exception);
                     }
                 });
         subscribe(request);
@@ -222,10 +231,9 @@ public class TCIotDeviceService {
     private void reportDeviceInfo() throws JSONException {
         JSONObject deviceInfoObject = new JSONObject();
         deviceInfoObject.put("product", mTCMqttConfig.getProductId())
-                .put("device", mTCMqttConfig.getDeviceName())
                 .put("sdk-ver", BuildConfig.VERSION_NAME)
                 .put("firm-ver", "android");
-        mShadowManager.reportDeviceInfo(deviceInfoObject);
+        mOtaManager.reportDeviceInfo(deviceInfoObject);
     }
 
     /**

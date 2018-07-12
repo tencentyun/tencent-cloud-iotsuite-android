@@ -16,8 +16,8 @@ import com.tencent.qcloud.iot.mqtt.request.MqttUnSubscribeRequest;
 
 public abstract class AbstractIotMqttClient {
     private Handler mHandler;
-    private Object mHandlerLock = new Object();
-    private Object mReconnectTaskToken = new Object();
+    private final Object mHandlerLock = new Object();
+    private final Object mReconnectTaskToken = new Object();
 
     public AbstractIotMqttClient() {
     }

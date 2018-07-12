@@ -2,6 +2,8 @@ package com.tencent.qcloud.iot.mqtt.shadow;
 
 import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.TCIotMqttClient;
+import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
+import com.tencent.qcloud.iot.mqtt.TopicHelper;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
@@ -37,16 +39,6 @@ public class ShadowManager {
     public static final String SHADOW_METHOD_REPLY = "reply";
     public static final String SHADOW_METHOD_CONTROL = "control";
 
-    /**
-     * 上报固件信息，设备主动上报
-     */
-    public static final String SHADOW_METHOD_UPDATE_FIRM_INFO = "update_firm_info";
-
-    /**
-     * 上报固件信息，服务端下发指令要求客户端上报
-     */
-    public static final String SHADOW_METHOD_REPORT_FIRM_INFO = "report_firm_info";
-
     public static final int RTCODE_OK = 0;
     public static final int RTCODE_BAD_SHADOW_MSG = 400;
     public static final int RTCODE_SHADOW_MSG_MISSING_METHOD = 401;
@@ -57,21 +49,28 @@ public class ShadowManager {
     public static final int RTCODE_SHADOW_INTERNAL_ERROR = 500;
 
     private static final String TAG = ShadowManager.class.getSimpleName();
-    private static ShadowManager mInstance;
     private TCIotMqttClient mTCIotMqttClient;
-    private ShadowTopicHelper mShadowTopicHelper;
+    private TCMqttConfig mTCMqttConfig;
+    private TopicHelper mTopicHelper;
 
-    public ShadowManager(TCIotMqttClient mqttClient, ShadowTopicHelper shadowTopicHelper) {
-        if (mqttClient == null || shadowTopicHelper == null) {
-            throw new IllegalArgumentException("mqttClient and shadowTopicHelper cannot be null");
+    public ShadowManager(TCIotMqttClient mqttClient, TCMqttConfig mqttConfig, TopicHelper topicHelper) {
+        if (mqttClient == null || mqttConfig == null || topicHelper == null) {
+            throw new IllegalArgumentException("params empty");
         }
-        mShadowTopicHelper = shadowTopicHelper;
         mTCIotMqttClient = mqttClient;
+        mTCMqttConfig = mqttConfig;
+        mTopicHelper = topicHelper;
     }
 
     public void getShadow() throws JSONException {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(SHADOW_JSON_KEY_METHOD, SHADOW_METHOD_GET);
+        if (mTCMqttConfig.isIgnoreGetReported()) {
+            jsonObject.put(SHADOW_JSON_KEY_REPORTED, false);
+        }
+        if (mTCMqttConfig.isIgnoreGetMetadata()) {
+            jsonObject.put(SHADOW_JSON_KEY_METADATE, false);
+        }
 
         publishShadowRequest(jsonObject.toString());
     }
@@ -99,6 +98,9 @@ public class ShadowManager {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(SHADOW_JSON_KEY_METHOD, SHADOW_METHOD_UPDATE);
         jsonObject.put(SHADOW_JSON_KEY_STATE, jsonState);
+        if (mTCMqttConfig.isIgnoreUpdateMetadata()) {
+            jsonObject.put(SHADOW_JSON_KEY_METADATE, false);
+        }
 
         publishShadowRequest(jsonObject.toString());
     }
@@ -114,17 +116,9 @@ public class ShadowManager {
         publishShadowRequest(jsonObject.toString());
     }
 
-    public void reportDeviceInfo(JSONObject deviceInfo) throws JSONException {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put(SHADOW_JSON_KEY_METHOD, SHADOW_METHOD_UPDATE_FIRM_INFO);
-        jsonObject.put(SHADOW_JSON_KEY_STATE, deviceInfo);
-
-        publishShadowRequest(jsonObject.toString());
-    }
-
     private void publishShadowRequest(final String message) {
         MqttPublishRequest request = new MqttPublishRequest()
-                .setTopic(mShadowTopicHelper.getUpdateTopic())
+                .setTopic(mTopicHelper.getShadowUpdateTopic())
                 .setQos(TCIotMqttQos.QOS1)
                 .setMsg(message)
                 .setCallback(new IMqttActionCallback() {

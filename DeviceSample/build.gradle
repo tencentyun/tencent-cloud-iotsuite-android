@@ -7,8 +7,8 @@ android {
         applicationId "com.tencent.qcloud.iot.sample"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 20200
-        versionName "2.2.0"
+        versionCode 20300
+        versionName "2.3.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -24,7 +24,7 @@ android {
 
 dependencies {
     //implementation project(path: ':IotSDKDevice')
-    implementation 'com.tencent.qcloud:iot-android-sdk-device:2.2.0'
+    implementation 'com.tencent.qcloud:iot-android-sdk-device:2.3.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'

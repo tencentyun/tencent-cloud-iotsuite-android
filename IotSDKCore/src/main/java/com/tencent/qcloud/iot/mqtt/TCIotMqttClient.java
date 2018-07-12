@@ -137,7 +137,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
             if (mMqttClient == null) {
                 mMqttClient = new MqttAsyncClient(mqttBrokerURL, mMqttClientId, new MemoryPersistence());
             }
-            QLog.d(TAG, "url = " + mqttBrokerURL + ", clientid = " + mMqttClientId);
+            //QLog.d(TAG, "url = " + mqttBrokerURL + ", clientid = " + mMqttClientId);
             SSLSocketFactory socketFactory = null;
             if (mTCMqttConfig.getKeyStore() != null) {
                 socketFactory = TCTLSSocketFactory.getSocketFactory(mTCMqttConfig.getKeyStore());
@@ -232,7 +232,6 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
      */
     private MqttConnectOptions buildMqttConnectOptions(SocketFactory socketFactory) {
         MqttConnectOptions options = new MqttConnectOptions();
-        //TODO: need setMqttVersion?
         options.setMqttVersion(MqttConnectOptions.MQTT_VERSION_3_1_1);
         //options.setCleanSession(false);
         if (socketFactory != null) {

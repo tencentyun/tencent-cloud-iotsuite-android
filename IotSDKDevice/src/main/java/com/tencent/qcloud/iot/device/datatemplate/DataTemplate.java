@@ -48,7 +48,6 @@ public class DataTemplate {
             JSONArray rangeArray = object.getJSONArray(DT_RANGE);
 
             ArrayList<Object> range = new ArrayList<>();
-            range = new ArrayList<>();
             for (int j = 0; j < rangeArray.length(); j++) {
                 range.add(rangeArray.get(j));
             }

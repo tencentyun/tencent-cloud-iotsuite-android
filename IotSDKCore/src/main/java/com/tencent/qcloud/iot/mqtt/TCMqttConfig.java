@@ -90,6 +90,21 @@ public class TCMqttConfig {
 
     private String mTokenScheme = TCConstants.Scheme.HTTPS;
 
+    /**
+     * get shadow时，忽略reported
+     */
+    private boolean mIgnoreGetReported = false;
+
+    /**
+     * get shadow时，忽略metadata
+     */
+    private boolean mIgnoreGetMetadata = false;
+
+    /**
+     * update shadow时，忽略metadata
+     */
+    private boolean mIgnoreUpdateMetadata = true;
+
     public TCMqttConfig(String mqttHost, String productKey, String productId, String region) {
         if (TextUtils.isEmpty(mqttHost)) {
             throw new IllegalArgumentException("mqttHost is empty");
@@ -248,6 +263,23 @@ public class TCMqttConfig {
             throw new IllegalArgumentException("illegal token scheme: " + tokenScheme);
         }
         mTokenScheme = tokenScheme;
+        return this;
+    }
+
+    public boolean isIgnoreGetReported() {
+        return mIgnoreGetReported;
+    }
+
+    public boolean isIgnoreGetMetadata() {
+        return mIgnoreGetMetadata;
+    }
+
+    public boolean isIgnoreUpdateMetadata() {
+        return mIgnoreUpdateMetadata;
+    }
+
+    public TCMqttConfig setIgnoreUpdateMetadata(boolean ignoreUpdateMetadata) {
+        mIgnoreUpdateMetadata = ignoreUpdateMetadata;
         return this;
     }
 

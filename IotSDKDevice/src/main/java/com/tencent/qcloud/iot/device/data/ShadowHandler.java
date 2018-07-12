@@ -75,8 +75,12 @@ public class ShadowHandler {
             if (state != null) {
                 // get shadow success
                 JSONObject desired = state.getJSONObject(SHADOW_JSON_KEY_DESIRED);
-                JSONObject reported = state.getJSONObject(SHADOW_JSON_KEY_REPORTED);
-                mDeviceDataHandler.handleDesiredForInit(desired);
+                JSONObject reported = state.optJSONObject(SHADOW_JSON_KEY_REPORTED);
+                JSONObject metadataDesired = null;
+                if (metadata != null) {
+                    metadataDesired = metadata.optJSONObject(SHADOW_JSON_KEY_DESIRED);
+                }
+                mDeviceDataHandler.handleDesiredForInit(desired, metadataDesired);
             } else {
                 // report or delete success
             }
@@ -99,9 +103,13 @@ public class ShadowHandler {
         String status = payload.getString(SHADOW_JSON_KEY_STATUS);
         if (code == RTCODE_OK) {
             JSONObject state = payload.getJSONObject(SHADOW_JSON_KEY_STATE);
-            JSONObject metadata = payload.getJSONObject(SHADOW_JSON_KEY_METADATE);
+            JSONObject metadata = payload.optJSONObject(SHADOW_JSON_KEY_METADATE);
             JSONObject desired = state.getJSONObject(SHADOW_JSON_KEY_DESIRED);
-            mDeviceDataHandler.handleDeisredForControl(desired, false);
+            JSONObject metadataDesired = null;
+            if (metadata != null) {
+                metadataDesired = metadata.optJSONObject(SHADOW_JSON_KEY_DESIRED);
+            }
+            mDeviceDataHandler.handleDeisredForControl(desired, metadataDesired);
         } else {
             QLog.e(TAG, "onControl error, message = " + jsonObject.toString());
         }

@@ -14,9 +14,9 @@ import android.widget.TextView;
 import com.tencent.qcloud.iot.device.datatemplate.DataPointControlPacket;
 import com.tencent.qcloud.iot.device.datatemplate.DataTemplate;
 import com.tencent.qcloud.iot.sample.Connection;
-import com.tencent.qcloud.iot.sample.constant.Constants;
 import com.tencent.qcloud.iot.sample.MainActivity;
 import com.tencent.qcloud.iot.sample.R;
+import com.tencent.qcloud.iot.sample.constant.Constants;
 import com.tencent.qcloud.iot.sample.constant.TCDataConstant;
 
 /**
@@ -103,7 +103,10 @@ public class ConnectionFragment extends Fragment {
                     if (isChecked) {
                         mConnection.connect(mDeviceName, mDeviceSecret, mDataControlListener);
                     } else {
-                        mConnection.disconnect();
+                        //手动触发才调用disconnect，非手动触发时在SDK内部已经调用了disconnect
+                        if (mSwitchConnection.isPressed()) {
+                            mConnection.disconnect();
+                        }
                         mTVState.setText("Closed");
                     }
                 }
@@ -134,7 +137,7 @@ public class ConnectionFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mTVState.setText("Closed");
+                            mSwitchConnection.setChecked(false);
                         }
                     });
                 }

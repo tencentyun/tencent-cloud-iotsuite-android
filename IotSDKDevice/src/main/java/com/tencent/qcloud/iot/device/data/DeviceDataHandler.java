@@ -29,10 +29,16 @@ public class DeviceDataHandler {
     private static final String TAG = DeviceDataHandler.class.getSimpleName();
     private static DeviceDataHandler mInstance;
     private ShadowManager mShadowManager;
+    //TODO: 持久化 mCachedDesired 和 mCachedMetadataDesired ？以解决重启设备后仍用服务端的desired（可能已过期）来初始化。
     /**
      * 缓存来自服务端或本地的desired
      */
     private JSONObject mCachedDesired = new JSONObject();
+
+    /**
+     * 缓存来自服务端的metadata里面的desired，用于时间戳判断
+     */
+    private JSONObject mCachedMetadataDesired = new JSONObject();
     /**
      * 缓存本地desired用于report，report后需要清空
      */
@@ -58,9 +64,8 @@ public class DeviceDataHandler {
         mShadowManager = shadowManager;
     }
 
-    private DeviceDataHandler setShadowManager(ShadowManager shadowManager) {
+    private void setShadowManager(ShadowManager shadowManager) {
         mShadowManager = shadowManager;
-        return this;
     }
 
     /**
@@ -69,16 +74,17 @@ public class DeviceDataHandler {
      * @param desired desired对象
      * @throws JSONException 异常
      */
-    public void handleDesiredForInit(JSONObject desired) throws JSONException {
+    public void handleDesiredForInit(JSONObject desired, JSONObject metadataDesired) throws JSONException {
         if (desired == null) {
             throw new IllegalArgumentException("handleDesiredForInit error");
         }
         //forInit标识是否用于SDK启动后第一次设备初始化
         boolean forInit = (mCachedDesired.length() == 0);
-        JSONObject diffDesired = getDiffDesired(mCachedDesired, desired);
-        if (desired.length() > 0) {
-            handleDeisredForControl(diffDesired, forInit);
-        }
+        handleDeisredForControl(desired, metadataDesired, forInit);
+    }
+
+    public void handleDeisredForControl(JSONObject desired, JSONObject metadataDesired) throws JSONException {
+        handleDeisredForControl(desired, metadataDesired, false);
     }
 
     /**
@@ -87,9 +93,12 @@ public class DeviceDataHandler {
      * @param desired desired对象
      * @throws JSONException 异常
      */
-    public void handleDeisredForControl(JSONObject desired, boolean forInit) throws JSONException {
+    private void handleDeisredForControl(JSONObject desired, JSONObject metadataDesired, boolean forInit) throws JSONException {
         if (desired == null) {
             throw new IllegalArgumentException("handleDeisredForControl error");
+        }
+        if (metadataDesired != null) {
+            desired = filterDesiredByMetadata(desired, metadataDesired);
         }
         mergeDesired(mCachedDesired, desired);
 
@@ -135,6 +144,7 @@ public class DeviceDataHandler {
         }
         mergeDesired(mCachedDesired, userDesired);
         mergeDesired(mUserDesiredToReport, userDesired);
+        updateCacheMetadataOnUserChangeData(userDesired);
         if (commit) {
             JSONObject localDeviceData = cloneJSONObject(mLocalDeviceData);
             ArrayList<String> readyForReportKeys = new ArrayList<>();
@@ -198,5 +208,37 @@ public class DeviceDataHandler {
         }
         QLog.d(TAG, "getDiffDesired: " + diffDesired.toString());
         return diffDesired;
+    }
+
+    /**
+     * 过滤掉时间戳不符的字段
+     *
+     * @param desired
+     * @param metadataDesired
+     * @return
+     */
+    private synchronized JSONObject filterDesiredByMetadata(JSONObject desired, JSONObject metadataDesired) throws JSONException {
+        if (metadataDesired == null) {
+            return desired;
+        }
+        Iterator<String> metadataDesiredKeys = metadataDesired.keys();
+        while (metadataDesiredKeys.hasNext()) {
+            String key = metadataDesiredKeys.next();
+            if (mCachedMetadataDesired.has(key)) {
+                long newTimestamp = metadataDesired.getJSONObject(key).getLong(ShadowHandler.SHADOW_JSON_KEY_TIMESTAMP);
+                long cachedTimestamp = mCachedMetadataDesired.getJSONObject(key).getLong(ShadowHandler.SHADOW_JSON_KEY_TIMESTAMP);
+                if (newTimestamp <= cachedTimestamp) {
+                    QLog.d(TAG, "expired desired, key = " + key + ", cachedTimestamp = " + cachedTimestamp + ", newTimestamp = " + newTimestamp);
+                    desired.remove(key);
+                    continue;
+                }
+            }
+            mCachedMetadataDesired.put(key, metadataDesired.get(key));
+        }
+        return desired;
+    }
+
+    private void updateCacheMetadataOnUserChangeData(JSONObject userDesired) {
+        //TODO:当前时间戳写入到 mCachedMetadataDesired 对应的字段中，前提是获取的时间戳和服务端是同步的。以解决本地控制和服务端控制的时序问题。
     }
 }

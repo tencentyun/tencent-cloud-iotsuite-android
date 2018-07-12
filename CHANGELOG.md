@@ -37,3 +37,13 @@
 - 取消python生成JsonFileData的机制，改为SDK内部解析json文件。
 - 移除com.tencent.qcloud.iot.sample.qcloud里面的类。
 - 允许设置用http方式请求token。
+
+## [2.3.0] - 2018/07/12
+
+### 新增
+
+- ota通道。
+
+### 变更
+
+- fix bugs
