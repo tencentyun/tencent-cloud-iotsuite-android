@@ -5,15 +5,14 @@ import android.os.Parcelable;
 import android.util.Log;
 
 import com.tencent.qcloud.iot.device.TCIotDeviceService;
-import com.tencent.qcloud.iot.device.datatemplate.DataTemplate;
-import com.tencent.qcloud.iot.device.datatemplate.JsonFileData;
+import com.tencent.qcloud.iot.device.dataprotocol.JsonFileData;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.DataTemplate;
 import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.mqtt.callback.IMqttMessageListener;
 import com.tencent.qcloud.iot.mqtt.constant.MqttConnectState;
-import com.tencent.qcloud.iot.mqtt.constant.TCConstants;
 import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
 import com.tencent.qcloud.iot.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.mqtt.request.MqttSubscribeRequest;
@@ -110,7 +109,15 @@ public class Connection implements Parcelable {
 
     private void connect(TCMqttConfig config, DataTemplate.IDataControlListener dataControlListener) {
         mTCIotDeviceService = new TCIotDeviceService(config);
-        mTCIotDeviceService.setDataControlListener(dataControlListener);
+        String dataProtocol = TCIotDeviceService.getJsonFileData().getDataProtocol();
+        if (dataProtocol.equals(JsonFileData.DATA_PROTOCOL_TEMPLATE)) {
+            //设置监听服务端对数据点的控制消息。
+            mTCIotDeviceService.getDataTemplate().setDataControlListener(dataControlListener);
+        } else if (dataProtocol.equals(JsonFileData.DATA_PROTOCOL_NATIVE)) {
+            //设置监听来自已订阅topic的消息
+            mTCIotDeviceService.setMqttMessageListener(mMqttMessageListener);
+        }
+
         //建立mqtt连接并监听连接结果
         mTCIotDeviceService.connect(new IMqttConnectStateCallback() {
             @Override
@@ -131,8 +138,6 @@ public class Connection implements Parcelable {
                 }
             }
         });
-        //设置监听来自已订阅topic的消息
-        mTCIotDeviceService.setMqttMessageListener(mMqttMessageListener);
     }
 
     /**
@@ -149,6 +154,7 @@ public class Connection implements Parcelable {
 
     /**
      * 发布字符串消息到topic
+     * 数据协议为自定义时可用
      *
      * @param topic
      * @param msg
@@ -159,6 +165,7 @@ public class Connection implements Parcelable {
 
     /**
      * 发布byte（可理解为二进制）消息流到topic
+     * 数据协议为自定义时可用
      *
      * @param topic
      * @param msg
@@ -190,6 +197,7 @@ public class Connection implements Parcelable {
 
     /**
      * 订阅topic
+     * 数据协议为自定义时可用
      *
      * @param topic
      */
@@ -242,6 +250,7 @@ public class Connection implements Parcelable {
 
     /**
      * 取消订阅topic
+     * 数据协议为自定义时可用
      *
      * @param topic
      */
@@ -292,13 +301,6 @@ public class Connection implements Parcelable {
         if (mMessageNotifyListener != null) {
             mMessageNotifyListener.onMessage(msg);
         }
-    }
-
-    public JsonFileData getJsonFileData() {
-        if (mTCIotDeviceService == null) {
-            return null;
-        }
-        return mTCIotDeviceService.getJsonFileData();
     }
 
     public DataTemplate getDataTemplate() {

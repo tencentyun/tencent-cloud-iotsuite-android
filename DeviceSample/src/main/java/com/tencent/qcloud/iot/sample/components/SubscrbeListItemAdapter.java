@@ -32,10 +32,10 @@ public class SubscrbeListItemAdapter extends ArrayAdapter<Subscribe> {
     public View getView(final int position, View convertView, @NonNull ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.subscribe_list_item, parent, false);
-        TextView topicTextView = (TextView) rowView.findViewById(R.id.tv_topic);
-        ImageView topicDeleteButton = (ImageView) rowView.findViewById(R.id.topic_delete_image);
-        TextView qosTextView = (TextView) rowView.findViewById(R.id.tv_qos);
-        TextView subscribeStateTextView = (TextView) rowView.findViewById(R.id.tv_state);
+        TextView topicTextView = rowView.findViewById(R.id.tv_topic);
+        ImageView topicDeleteButton = rowView.findViewById(R.id.topic_delete_image);
+        TextView qosTextView = rowView.findViewById(R.id.tv_qos);
+        TextView subscribeStateTextView = rowView.findViewById(R.id.tv_state);
         topicTextView.setText(mTopics.get(position).getTopic());
         String qosString = "Qos:" + mTopics.get(position).getQos();
         String subscribeState = "subscribed: " + mTopics.get(position).isSuccessed();

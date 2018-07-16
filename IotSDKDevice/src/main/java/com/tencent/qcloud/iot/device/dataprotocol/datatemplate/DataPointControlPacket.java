@@ -1,4 +1,4 @@
-package com.tencent.qcloud.iot.device.datatemplate;
+package com.tencent.qcloud.iot.device.dataprotocol.datatemplate;
 
 /**
  * Created by rongerwu on 2018/6/4.

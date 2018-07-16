@@ -1,10 +1,10 @@
-package com.tencent.qcloud.iot.device.datatemplate;
+package com.tencent.qcloud.iot.device.dataprotocol.datatemplate;
 
-import com.tencent.qcloud.iot.device.datatemplate.datapoint.BoolDataPoint;
-import com.tencent.qcloud.iot.device.datatemplate.datapoint.DataPoint;
-import com.tencent.qcloud.iot.device.datatemplate.datapoint.EnumDataPoint;
-import com.tencent.qcloud.iot.device.datatemplate.datapoint.NumberDataPoint;
-import com.tencent.qcloud.iot.device.datatemplate.datapoint.StringDataPoint;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.datapoint.BoolDataPoint;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.datapoint.DataPoint;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.datapoint.EnumDataPoint;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.datapoint.StringDataPoint;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.datapoint.NumberDataPoint;
 import com.tencent.qcloud.iot.device.exception.DeviceException;
 import com.tencent.qcloud.iot.log.QLog;
 

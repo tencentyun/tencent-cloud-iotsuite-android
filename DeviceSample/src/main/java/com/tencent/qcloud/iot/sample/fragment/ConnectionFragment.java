@@ -11,8 +11,10 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import com.tencent.qcloud.iot.device.datatemplate.DataPointControlPacket;
-import com.tencent.qcloud.iot.device.datatemplate.DataTemplate;
+import com.tencent.qcloud.iot.device.TCIotDeviceService;
+import com.tencent.qcloud.iot.device.dataprotocol.JsonFileData;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.DataPointControlPacket;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.DataTemplate;
 import com.tencent.qcloud.iot.sample.Connection;
 import com.tencent.qcloud.iot.sample.MainActivity;
 import com.tencent.qcloud.iot.sample.R;
@@ -31,6 +33,7 @@ public class ConnectionFragment extends Fragment {
     private Switch mSwitchConnection;
     private TextView mTVState;
     private FragmentTabHost mTabHost;
+    private TextView mTVDataProtocol;
     private Connection mConnection;
 
     private String mDeviceName = "token_test_1";
@@ -86,16 +89,25 @@ public class ConnectionFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         if (mRootView == null) {
             View rootView = inflater.inflate(R.layout.fragment_connection, container, false);
-            mTabHost = (FragmentTabHost) rootView.findViewById(android.R.id.tabhost);
+            mTabHost = rootView.findViewById(android.R.id.tabhost);
+            mTVDataProtocol = rootView.findViewById(R.id.tv_data_protocol);
+            mTVState = rootView.findViewById(R.id.tv_state);
+            mSwitchConnection = rootView.findViewById(R.id.switch_connection);
+
             mTabHost.setup(getActivity(), getChildFragmentManager(), android.R.id.tabcontent);
             Bundle bundle = new Bundle();
             bundle.putParcelable(Constants.CONNECTION_KEY, mConnection);
-            mTabHost.addTab(mTabHost.newTabSpec("Publish").setIndicator("Publish"), PublishFragment.class, bundle);
-            mTabHost.addTab(mTabHost.newTabSpec("Subscribe").setIndicator("Subscribe"), SubscribeFragment.class, bundle);
-            mTabHost.addTab(mTabHost.newTabSpec("Data").setIndicator("Data"), DataFragment.class, bundle);
-
-            mTVState = (TextView) rootView.findViewById(R.id.tv_state);
-            mSwitchConnection = (Switch) rootView.findViewById(R.id.switch_connection);
+            //数据协议类型
+            String dataProtocol = TCIotDeviceService.getJsonFileData().getDataProtocol();
+            mTVDataProtocol.setText(dataProtocol);
+            if (dataProtocol.equals(JsonFileData.DATA_PROTOCOL_TEMPLATE)) {
+                //数据模板
+                mTabHost.addTab(mTabHost.newTabSpec("Data").setIndicator("Data"), DataFragment.class, bundle);
+            } else if (dataProtocol.equals(JsonFileData.DATA_PROTOCOL_NATIVE)) {
+                //自定义
+                mTabHost.addTab(mTabHost.newTabSpec("Publish").setIndicator("Publish"), PublishFragment.class, bundle);
+                mTabHost.addTab(mTabHost.newTabSpec("Subscribe").setIndicator("Subscribe"), SubscribeFragment.class, bundle);
+            }
 
             mSwitchConnection.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override

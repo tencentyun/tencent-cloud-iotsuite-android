@@ -7,17 +7,17 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="10dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="connection switch: "
             android:textColor="@android:color/holo_red_dark"
             android:textSize="20sp"
-            android:textStyle="bold"
-            android:text="connection switch: "/>
+            android:textStyle="bold"/>
         <Switch
             android:id="@+id/switch_connection"
             android:layout_width="wrap_content"
@@ -32,15 +32,34 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
-            android:textAllCaps="false"
             android:text="Edit"
+            android:textAllCaps="false"
             android:textColor="@android:color/holo_blue_dark"
             android:visibility="gone"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textColor="@color/textColorPrimary"
+            android:text="data_protocol: "/>
+        <TextView
+            android:id="@+id/tv_data_protocol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textColor="@color/textColorPrimary"/>
+    </LinearLayout>
+
     <View
         style="@style/Divider2"
-        android:layout_below="@+id/topic_group"/>
+        android:layout_below="@+id/topic_group"
+        android:layout_marginTop="10dp"/>
 
     <android.support.v4.app.FragmentTabHost
         android:id="@android:id/tabhost"

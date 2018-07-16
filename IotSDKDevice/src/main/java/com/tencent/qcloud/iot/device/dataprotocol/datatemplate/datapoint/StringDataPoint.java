@@ -1,4 +1,4 @@
-package com.tencent.qcloud.iot.device.datatemplate.datapoint;
+package com.tencent.qcloud.iot.device.dataprotocol.datatemplate.datapoint;
 
 import org.json.JSONException;
 

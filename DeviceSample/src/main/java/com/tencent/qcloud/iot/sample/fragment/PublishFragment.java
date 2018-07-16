@@ -11,9 +11,9 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.tencent.qcloud.iot.sample.Connection;
-import com.tencent.qcloud.iot.sample.constant.Constants;
 import com.tencent.qcloud.iot.sample.MainActivity;
 import com.tencent.qcloud.iot.sample.R;
+import com.tencent.qcloud.iot.sample.constant.Constants;
 
 /**
  * Created by rongerwu on 2018/1/15.
@@ -37,9 +37,9 @@ public class PublishFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         if (mRootView == null) {
             final View rootView = inflater.inflate(R.layout.fragment_publish, container, false);
-            final EditText topicText = (EditText) rootView.findViewById(R.id.et_topic);
-            final EditText messageText = (EditText) rootView.findViewById(R.id.et_message);
-            final Button btnPublish = (Button) rootView.findViewById(R.id.btn_publish);
+            final EditText topicText = rootView.findViewById(R.id.et_topic);
+            final EditText messageText = rootView.findViewById(R.id.et_message);
+            final Button btnPublish = rootView.findViewById(R.id.btn_publish);
 
             btnPublish.setOnClickListener(new View.OnClickListener() {
                 @Override

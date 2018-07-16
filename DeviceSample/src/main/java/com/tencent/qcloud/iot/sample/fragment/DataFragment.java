@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.tencent.qcloud.iot.device.datatemplate.DataTemplate;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.DataTemplate;
 import com.tencent.qcloud.iot.device.exception.DeviceException;
 import com.tencent.qcloud.iot.sample.BaseActivity;
 import com.tencent.qcloud.iot.sample.Connection;
@@ -42,7 +42,7 @@ public class DataFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         if (mRootView == null) {
             final View rootView = inflater.inflate(R.layout.fragment_data, container, false);
-            final Button btnTestUserChangeData = (Button) rootView.findViewById(R.id.btn_test);
+            final Button btnTestUserChangeData = rootView.findViewById(R.id.btn_test);
             btnTestUserChangeData.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

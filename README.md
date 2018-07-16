@@ -11,15 +11,15 @@ IotSDKDevice是腾讯云iotsuite的设备端SDK，DeviceSample是设备端的Dem
 
     git clone https://github.com/tencentyun/tencent-cloud-iotsuite-android
 
-#### 两种引入方式
+#### SDK嵌入方式
 
-1、直接依赖jcenter上的库（建议）
+直接依赖jcenter上的库
 
-    implementation 'com.tencent.qcloud:iot-android-sdk-device:2.3.0'
+    implementation 'com.tencent.qcloud:iot-android-sdk-device:2.3.2'
 
-2、下载SDK，然后本地依赖
+#### 数据协议
 
-    implementation project(path: ':IotSDKDevice')
+腾讯云iotsuite提供两种数据协议供选择：数据模板 及 自定义。用户根据自己需要，在控制台上创建产品时选择使用。
 
 #### 注意事项
 
@@ -31,9 +31,11 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
 
 为了方便用户接入，减少用户二次开发工作量，iotsuite抽象出数据点概念，需要用户生成数据模板文件。
 
-#### 下载与product对应的数据模板文件(.json)
+#### 从控制台导出产品信息文件(.json)
 
-到 [iotsuite控制台](https://console.cloud.tencent.com/iotsuite/product)，进入设备所属产品的管理页面，配置数据点，然后导出，得到json文件。
+到 [iotsuite控制台](https://console.cloud.tencent.com/iotsuite/product)，进入设备所属产品的管理页面，点击导出，得到json文件。
+
+如果数据协议类型是数据模板，则先配置数据点，再导出。
 
 #### 重命名及放置路径
 
@@ -69,7 +71,11 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
     private String mDeviceName = "token_test_1";
     private String mDeviceSecret = "1e3acdf1242b17b11f353505d75cbcfa";
 
-3、ConnectionFragment中，重新实现用于监听服务端控制消息的接口类 DataTemplate.IDataControlListener，示例如下：
+3、接下来需要区分数据协议进行修改：
+
+##### 数据模板协议需要的修改：
+
+1、ConnectionFragment中，重新实现用于监听服务端控制消息的接口类 DataTemplate.IDataControlListener，示例如下：
 
 ```
     /**
@@ -106,7 +112,7 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
     };
 ```
 
-4、DataFragment中，根据 DataTemplate 提供的set接口，在测试方法testSetDataTemplate中设置数据点的值，示例如下：
+2、DataFragment中，根据 DataTemplate 提供的set接口，在测试方法testSetDataTemplate中设置数据点的值，示例如下：
 
 ```
     public void testSetDataTemplate() {
@@ -131,7 +137,7 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
 ```
 
 
-5、以上涉及 TCDataConstant 的常量需要用户根据tc_iot_project.json内的数据点字段自行定义的。我们也提供python脚本可以自动生成相应的定义代码：
+3、以上涉及 TCDataConstant 的常量需要用户根据tc_iot_project.json内的数据点字段自行定义的。我们也提供python脚本可以自动生成相应的定义代码：
 
     cd DeviceSample/tools/iot_code_generator
     python ./tc_iot_constant_generator.py -c ../../src/main/assets/tc_iot/tc_iot_product.json
@@ -139,6 +145,10 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
 会在iot_code_generator目录下生成 TCDataConstant.java 文件。
 
 > 开发脚本时使用的python版本是2.7.10.
+
+##### 自定义协议需要的修改：
+
+自定义数据协议不需要额外的修改，分别在 SubscribeFragment 和 PublishFragment 中，进行订阅和发布消息。
 
 #### 运行Demo
 
@@ -192,14 +202,16 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
 
         void setMqttMessageListener(IMqttMessageListener listener)
 
+> 如果数据协议是数据模板，只需要关注 connect 和 disconnect。只有当数据协议是自定义时，subscribe、publish 等接口才起作用。
+
 #### 产品信息部分
 
-首先通过 TCIotDeviceService 类中 getJsonFileData 接口获取到 JsonFileData 对象实例，然后就可以调用 JsonFileData 中的get接口得到产品信息。示例如下：
+首先通过 TCIotDeviceService 类中静态方法 getJsonFileData 获取到 JsonFileData 对象实例，然后就可以调用 JsonFileData 中的get接口得到产品信息。示例如下：
 
 - 获取产品信息
 
     ```
-        JsonFileData jsonFileData = mTCIotDeviceService.getJsonFileData();
+        JsonFileData jsonFileData = TCIotDeviceService.getJsonFileData();
         jsonFileData.getProductId();
         jsonFileData.getProductKey();
         ......
@@ -211,11 +223,11 @@ DeviceSample中Connection.java封装了对IotSDKDevice的调用，直接基于Co
 
 #### 数据点部分
 
-TCIotDeviceService 和 DataTemplate 提供数据点功能接口。
+DataTemplate 提供数据点功能接口。
 
 - 监听服务端对数据点的控制消息
 
-        void setDataControlListener(DataTemplate.IDataControlListener dataControlListener)
+        void setDataControlListener(IDataControlListener dataControlListener)
 
 - 用户主动修改数据点的值
 

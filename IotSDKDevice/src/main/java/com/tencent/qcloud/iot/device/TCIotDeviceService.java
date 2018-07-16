@@ -6,9 +6,9 @@ import com.tencent.qcloud.iot.device.data.DeviceDataHandler;
 import com.tencent.qcloud.iot.device.data.IDataEventListener;
 import com.tencent.qcloud.iot.device.data.OtaHandler;
 import com.tencent.qcloud.iot.device.data.ShadowHandler;
-import com.tencent.qcloud.iot.device.datatemplate.DataTemplate;
-import com.tencent.qcloud.iot.device.datatemplate.JsonFileData;
-import com.tencent.qcloud.iot.device.datatemplate.ProductInfoHelper;
+import com.tencent.qcloud.iot.device.dataprotocol.JsonFileData;
+import com.tencent.qcloud.iot.device.dataprotocol.ProductInfoHelper;
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.DataTemplate;
 import com.tencent.qcloud.iot.device.exception.DeviceRuntimeException;
 import com.tencent.qcloud.iot.device.utils.FileUtil;
 import com.tencent.qcloud.iot.log.QLog;
@@ -236,20 +236,7 @@ public class TCIotDeviceService {
         mOtaManager.reportDeviceInfo(deviceInfoObject);
     }
 
-    /**
-     * 设置监听服务端对数据点的控制消息
-     *
-     * @param dataControlListener
-     */
-    public void setDataControlListener(DataTemplate.IDataControlListener dataControlListener) {
-        if (dataControlListener == null) {
-            throw new IllegalArgumentException("dataControlListener is null");
-        }
-        //监听本地处理后的来自服务端的控制消息
-        mDataTemplate.setDataControlListener(dataControlListener);
-    }
-
-    public JsonFileData getJsonFileData() {
+    public static JsonFileData getJsonFileData() {
         return sJsonFileData;
     }
 

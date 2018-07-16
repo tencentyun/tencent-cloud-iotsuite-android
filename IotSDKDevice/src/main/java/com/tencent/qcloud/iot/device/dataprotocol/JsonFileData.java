@@ -1,4 +1,6 @@
-package com.tencent.qcloud.iot.device.datatemplate;
+package com.tencent.qcloud.iot.device.dataprotocol;
+
+import com.tencent.qcloud.iot.device.dataprotocol.datatemplate.DataTemplate;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +21,7 @@ public class JsonFileData {
     private static final String DOMAIN = "domain";
     private static final String STANDARD = "standard";
     private static final String AUTH_TYPE = "auth_type";
+    private static final String DATA_PROTOCOL = "data_protocol";
     private static final String DATA_TEMPLATE = "data_template";
     private static final String DELETED = "deleted";
     private static final String MESSAGE = "message";
@@ -26,6 +29,9 @@ public class JsonFileData {
     private static final String UPDATE_TIME = "update_time";
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
+
+    public static final String DATA_PROTOCOL_TEMPLATE = "template";
+    public static final String DATA_PROTOCOL_NATIVE = "native";
 
     public static int AUTH_TYPE_DIRECT = 0;
     public static int AUTH_TYPE_TOKEN = 1;
@@ -46,8 +52,8 @@ public class JsonFileData {
     final private String mUpdateTime;
     final private String mUserName;
     final private String mPassword;
-
-    private DataTemplate mDataTemplate;
+    final private String mDataProtocol;
+    final private DataTemplate mDataTemplate;
 
     public JsonFileData(String jsonString) throws JSONException {
         JSONObject jsonObject = new JSONObject(jsonString);
@@ -67,10 +73,8 @@ public class JsonFileData {
         mUpdateTime = jsonObject.optString(UPDATE_TIME, "");
         mUserName = jsonObject.optString(USERNAME, "");
         mPassword = jsonObject.optString(PASSWORD, "");
-
-        if (!jsonObject.isNull(DATA_TEMPLATE)) {
-            mDataTemplate = new DataTemplate(jsonObject.getJSONArray(DATA_TEMPLATE));
-        }
+        mDataProtocol = jsonObject.getString(DATA_PROTOCOL);
+        mDataTemplate = new DataTemplate(jsonObject.getJSONArray(DATA_TEMPLATE));
     }
 
     public String getProductId() {
@@ -135,6 +139,10 @@ public class JsonFileData {
 
     public String getPassword() {
         return mPassword;
+    }
+
+    public String getDataProtocol() {
+        return mDataProtocol;
     }
 
     public DataTemplate getDataTemplate() {
