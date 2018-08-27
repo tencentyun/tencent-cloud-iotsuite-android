@@ -6,8 +6,8 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 20302
-        versionName "2.3.2"
+        versionCode 20400
+        versionName "2.4.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -29,7 +29,9 @@ android {
 
 dependencies {
     //api project(path: ':IotSDKCore')
-    api 'com.tencent.qcloud:iot-android-sdk-core:2.1.0'
+    api 'com.tencent.qcloud:iot-android-sdk-core:2.2.0'
+
+    implementation "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'

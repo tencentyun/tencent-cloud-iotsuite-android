@@ -3,7 +3,7 @@ package com.tencent.qcloud.iot.device.data;
 import android.support.annotation.NonNull;
 
 import com.tencent.qcloud.iot.log.QLog;
-import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
+import com.tencent.qcloud.iot.device.mqtt.shadow.ShadowManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -74,17 +74,17 @@ public class DeviceDataHandler {
      * @param desired desired对象
      * @throws JSONException 异常
      */
-    public void handleDesiredForInit(JSONObject desired, JSONObject metadataDesired) throws JSONException {
+    public void handleDesiredForInit(JSONObject desired, JSONObject metadataDesired, int outerSequence) throws JSONException {
         if (desired == null) {
             throw new IllegalArgumentException("handleDesiredForInit error");
         }
         //forInit标识是否用于SDK启动后第一次设备初始化
         boolean forInit = (mCachedDesired.length() == 0);
-        handleDeisredForControl(desired, metadataDesired, forInit);
+        handleDeisredForControl(desired, metadataDesired, outerSequence, forInit);
     }
 
-    public void handleDeisredForControl(JSONObject desired, JSONObject metadataDesired) throws JSONException {
-        handleDeisredForControl(desired, metadataDesired, false);
+    public void handleDeisredForControl(JSONObject desired, JSONObject metadataDesired, int outerSequence) throws JSONException {
+        handleDeisredForControl(desired, metadataDesired, outerSequence, false);
     }
 
     /**
@@ -93,10 +93,11 @@ public class DeviceDataHandler {
      * @param desired desired对象
      * @throws JSONException 异常
      */
-    private void handleDeisredForControl(JSONObject desired, JSONObject metadataDesired, boolean forInit) throws JSONException {
+    private void handleDeisredForControl(JSONObject desired, JSONObject metadataDesired, int outerSequence, boolean forInit) throws JSONException {
         if (desired == null) {
             throw new IllegalArgumentException("handleDeisredForControl error");
         }
+        deleteRemoteDeisred(desired, outerSequence);
         if (metadataDesired != null) {
             desired = filterDesiredByMetadata(desired, metadataDesired);
         }
@@ -123,6 +124,25 @@ public class DeviceDataHandler {
         if (readyForReportKeys.size() > 0) {
             JSONObject reportObject = new JSONObject(mLocalDeviceData, readyForReportKeys.toArray(new String[0]));
             mShadowManager.reportShadow(reportObject);
+        }
+    }
+
+    /**
+     * delete服务端的desired
+     *
+     * @param desired
+     * @param outerSequence
+     * @throws JSONException
+     */
+    private void deleteRemoteDeisred(JSONObject desired, int outerSequence) throws JSONException {
+        JSONObject delete = new JSONObject();
+        Iterator<String> desiredKeys = desired.keys();
+        while (desiredKeys.hasNext()) {
+            String key = desiredKeys.next();
+            delete.put(key, JSONObject.NULL);
+        }
+        if (delete.length() > 0) {
+            mShadowManager.deleteShadow(delete, outerSequence);
         }
     }
 
@@ -211,7 +231,7 @@ public class DeviceDataHandler {
     }
 
     /**
-     * 过滤掉时间戳不符的字段
+     * 过滤掉sequence不符的字段
      *
      * @param desired
      * @param metadataDesired
@@ -225,12 +245,17 @@ public class DeviceDataHandler {
         while (metadataDesiredKeys.hasNext()) {
             String key = metadataDesiredKeys.next();
             if (mCachedMetadataDesired.has(key)) {
-                long newTimestamp = metadataDesired.getJSONObject(key).getLong(ShadowHandler.SHADOW_JSON_KEY_TIMESTAMP);
-                long cachedTimestamp = mCachedMetadataDesired.getJSONObject(key).getLong(ShadowHandler.SHADOW_JSON_KEY_TIMESTAMP);
-                if (newTimestamp <= cachedTimestamp) {
-                    QLog.d(TAG, "expired desired, key = " + key + ", cachedTimestamp = " + cachedTimestamp + ", newTimestamp = " + newTimestamp);
-                    desired.remove(key);
-                    continue;
+                int newSequence = metadataDesired.getJSONObject(key).getInt(ShadowHandler.SHADOW_JSON_KEY_SEQUENCE);
+                int cachedSequeuce = mCachedMetadataDesired.getJSONObject(key).getInt(ShadowHandler.SHADOW_JSON_KEY_SEQUENCE);
+                if (newSequence <= cachedSequeuce) {
+                    long newTimestamp = metadataDesired.getJSONObject(key).getLong(ShadowHandler.SHADOW_JSON_KEY_TIMESTAMP);
+                    long cachedTimestamp = mCachedMetadataDesired.getJSONObject(key).getLong(ShadowHandler.SHADOW_JSON_KEY_TIMESTAMP);
+                    //考虑cachedSequeuce到达Integer.MAX_VALUE，newSequence从0重新开始计数的情况
+                    if (newTimestamp < cachedTimestamp || (newTimestamp == cachedTimestamp && cachedSequeuce - newSequence < 10000)) {
+                        QLog.d(TAG, "expired desired, key = " + key + ", cachedSequeuce = " + cachedSequeuce + ", newSequence = " + newSequence);
+                        desired.remove(key);
+                        continue;
+                    }
                 }
             }
             mCachedMetadataDesired.put(key, metadataDesired.get(key));

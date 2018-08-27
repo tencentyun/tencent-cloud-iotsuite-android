@@ -1,6 +1,6 @@
 package com.tencent.qcloud.iot.sample.model;
 
-import com.tencent.qcloud.iot.mqtt.constant.TCIotMqttQos;
+import com.tencent.qcloud.iot.device.mqtt.constant.TCIotMqttQos;
 
 /**
  * Created by rongerwu on 2018/1/15.

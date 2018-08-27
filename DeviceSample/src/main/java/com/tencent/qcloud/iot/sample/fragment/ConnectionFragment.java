@@ -65,6 +65,8 @@ public class ConnectionFragment extends Fragment {
                 case TCDataConstant.ALIAS_NAME:
                     String aliasName = (String) dataPointControlPacket.getValue();
                     break;
+                default:
+                    break;
             }
             getMainActivity().showToast("onControlDataPoint: " + dataPointControlPacket.toString());
             //处理完成后需要返回true，才能够修改上报设备数据。返回false不会修改上报设备数据。

@@ -1,7 +1,7 @@
 package com.tencent.qcloud.iot.device.data;
 
 import com.tencent.qcloud.iot.log.QLog;
-import com.tencent.qcloud.iot.mqtt.shadow.ShadowManager;
+import com.tencent.qcloud.iot.device.mqtt.shadow.ShadowManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,6 +21,7 @@ public class ShadowHandler {
     public static final String SHADOW_JSON_KEY_VERSION = ShadowManager.SHADOW_JSON_KEY_VERSION;
     public static final String SHADOW_JSON_KEY_TIMESTAMP = ShadowManager.SHADOW_JSON_KEY_TIMESTAMP;
     public static final String SHADOW_JSON_KEY_PASSTHROUGH = ShadowManager.SHADOW_JSON_KEY_PASSTHROUGH;
+    public static final String SHADOW_JSON_KEY_SEQUENCE = ShadowManager.SHADOW_JSON_KEY_SEQUENCE;
 
     public static final String SHADOW_JSON_KEY_REPORTED = ShadowManager.SHADOW_JSON_KEY_REPORTED;
     public static final String SHADOW_JSON_KEY_DESIRED = ShadowManager.SHADOW_JSON_KEY_DESIRED;
@@ -77,10 +78,11 @@ public class ShadowHandler {
                 JSONObject desired = state.getJSONObject(SHADOW_JSON_KEY_DESIRED);
                 JSONObject reported = state.optJSONObject(SHADOW_JSON_KEY_REPORTED);
                 JSONObject metadataDesired = null;
+                int outerSequence = jsonObject.getInt(SHADOW_JSON_KEY_SEQUENCE);
                 if (metadata != null) {
                     metadataDesired = metadata.optJSONObject(SHADOW_JSON_KEY_DESIRED);
                 }
-                mDeviceDataHandler.handleDesiredForInit(desired, metadataDesired);
+                mDeviceDataHandler.handleDesiredForInit(desired, metadataDesired, outerSequence);
             } else {
                 // report or delete success
             }
@@ -98,6 +100,7 @@ public class ShadowHandler {
     private synchronized void onControl(JSONObject jsonObject) throws JSONException {
         //TODO:根据时间戳判断control消息是否过期
         long timeStamp = jsonObject.getLong(SHADOW_JSON_KEY_TIMESTAMP);
+        int outerSequence = jsonObject.getInt(SHADOW_JSON_KEY_SEQUENCE);
         JSONObject payload = jsonObject.getJSONObject(SHADOW_JSON_KEY_PAYLOAD);
         int code = payload.getInt(SHADOW_JSON_KEY_CODE);
         String status = payload.getString(SHADOW_JSON_KEY_STATUS);
@@ -109,7 +112,7 @@ public class ShadowHandler {
             if (metadata != null) {
                 metadataDesired = metadata.optJSONObject(SHADOW_JSON_KEY_DESIRED);
             }
-            mDeviceDataHandler.handleDeisredForControl(desired, metadataDesired);
+            mDeviceDataHandler.handleDeisredForControl(desired, metadataDesired, outerSequence);
         } else {
             QLog.e(TAG, "onControl error, message = " + jsonObject.toString());
         }

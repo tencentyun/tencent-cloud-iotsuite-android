@@ -13,7 +13,7 @@
     {
       "name": "device_switch",
       "desc": "开关",
-      "mode": "r",
+      "mode": "rw",
       "type": "bool",
       "range": [
         true,

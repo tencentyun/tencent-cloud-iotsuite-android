@@ -68,7 +68,9 @@ public class DataFragment extends Fragment {
             //字符串型
             dataTemplate.setDataPointByUser(TCDataConstant.ALIAS_NAME, "first", false);
             //枚举型
-            dataTemplate.setDataPointByUser(TCDataConstant.COLOR, TCDataConstant.COLOR_BLUE, true);
+            dataTemplate.setDataPointByUser(TCDataConstant.COLOR, TCDataConstant.COLOR_BLUE, false);
+            //布尔型
+            dataTemplate.setDataPointByUser(TCDataConstant.DEVICE_SWITCH, false, true);
         } catch (DeviceException e) {
             Log.e(TAG, "setDataPointByUser error", e);
         }

@@ -1,6 +1,6 @@
 package com.tencent.qcloud.iot.device.dataprotocol;
 
-import com.tencent.qcloud.iot.mqtt.TCMqttConfig;
+import com.tencent.qcloud.iot.device.mqtt.TCMqttConfig;
 
 /**
  * Created by rongerwu on 2018/4/19.

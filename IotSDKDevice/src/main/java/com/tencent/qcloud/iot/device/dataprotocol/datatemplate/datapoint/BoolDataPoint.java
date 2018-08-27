@@ -27,4 +27,19 @@ public class BoolDataPoint extends DataPoint {
     protected boolean checkValueRange(Object value) {
         return true;
     }
+
+    @Override
+    public Object getClientFormatValue(Object value) {
+        //0 == false, 1 == true
+        return ((int) value == 1);
+    }
+
+    @Override
+    public Object getServerFormatValue(Object value) {
+        if ((boolean) value) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 }
