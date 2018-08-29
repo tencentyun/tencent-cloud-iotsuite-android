@@ -1,7 +1,5 @@
 package com.tencent.qcloud.iot.device.dataprotocol.datatemplate.datapoint;
 
-import org.json.JSONException;
-
 import java.util.ArrayList;
 
 /**
@@ -9,7 +7,7 @@ import java.util.ArrayList;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 public class BoolDataPoint extends DataPoint {
-    public BoolDataPoint(String name, String mode, String type, String description, ArrayList<Object> range) throws JSONException {
+    public BoolDataPoint(String name, String mode, String type, String description, ArrayList<Object> range) {
         super(name, mode, type, description, range);
     }
 

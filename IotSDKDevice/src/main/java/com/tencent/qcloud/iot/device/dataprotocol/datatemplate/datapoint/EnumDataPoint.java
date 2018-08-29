@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Copyright (c) 2018 Tencent Cloud. All Rights Reserved.
  */
 public class EnumDataPoint extends DataPoint {
-    public EnumDataPoint(String name, String mode, String type, String description, ArrayList<Object> range) throws JSONException {
+    public EnumDataPoint(String name, String mode, String type, String description, ArrayList<Object> range) {
         super(name, mode, type, description, range);
     }
 

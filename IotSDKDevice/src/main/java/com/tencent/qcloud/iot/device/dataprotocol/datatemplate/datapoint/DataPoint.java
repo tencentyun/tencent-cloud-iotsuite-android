@@ -21,7 +21,7 @@ public abstract class DataPoint implements Cloneable {
 
     protected Object mValue;
 
-    public DataPoint(String name, String mode, String type, String description, ArrayList<Object> range) throws JSONException {
+    public DataPoint(String name, String mode, String type, String description, ArrayList<Object> range) {
         mName = name;
         mWriteable = mode.contains("w");
         mType = type;
@@ -62,7 +62,7 @@ public abstract class DataPoint implements Cloneable {
 
     public JSONObject genJsonObject() throws JSONException {
         JSONObject object = new JSONObject();
-        object.put(mName, mValue);
+        object.put(mName, getServerFormatValue(mValue));
         return object;
     }
 

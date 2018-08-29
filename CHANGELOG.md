@@ -60,3 +60,9 @@
 
 - control命令带上sequence字段，boolean型用 0/1 表示。
 - mqtt部分从core迁移到device模块。
+
+## [2.4.1] - 2018/08/29
+
+### 变更
+
+fix bugs
