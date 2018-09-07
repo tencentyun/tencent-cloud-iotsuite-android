@@ -4,12 +4,12 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Base64;
 
-import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.device.mqtt.TCMqttClientException;
 import com.tencent.qcloud.iot.device.mqtt.constant.TCConstants;
 import com.tencent.qcloud.iot.device.mqtt.http.AsyncHttpURLConnection;
-import com.tencent.qcloud.iot.utils.StringUtil;
 import com.tencent.qcloud.iot.device.utils.TCUtil;
+import com.tencent.qcloud.iot.log.QLog;
+import com.tencent.qcloud.iot.utils.StringUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,7 +55,7 @@ public class TokenHelper {
         mScheme = scheme;
     }
 
-    public void getToken(final String clientId, final ITokenListener listener) {
+    public void getToken(final String clientId, final ITokenCallback callback) {
         if (clientId == null) {
             throw new IllegalArgumentException("clientId is null");
         }
@@ -65,42 +65,42 @@ public class TokenHelper {
                     @Override
                     public void onHttpError(String errorMessage) {
                         QLog.e(TAG, "get server timestamp error: " + errorMessage);
-                        if (listener != null) {
-                            listener.onFailure(errorMessage);
+                        if (callback != null) {
+                            callback.onFailure(errorMessage);
                         }
                     }
 
                     @Override
                     public void onHttpComplete(String response) {
                         if (TextUtils.isEmpty(response)) {
-                            if (listener != null) {
-                                listener.onFailure("empty response");
+                            if (callback != null) {
+                                callback.onFailure("empty response");
                             }
                             return;
                         }
                         QLog.d(TAG, "get server timestamp complete, response = " + response);
                         String tokenUrl = generateTokenUrl(clientId, response);
-                        requestToken(tokenUrl, listener);
+                        requestToken(tokenUrl, callback);
                     }
                 });
         httpConnection.send();
     }
 
-    private void requestToken(final String url, final ITokenListener listener) {
+    private void requestToken(final String url, final ITokenCallback callback) {
         AsyncHttpURLConnection httpConnection = new AsyncHttpURLConnection(AsyncHttpURLConnection.METHOD_GET, url, null, new AsyncHttpURLConnection.AsyncHttpEvents() {
             @Override
             public void onHttpError(String errorMessage) {
                 QLog.e(TAG, "get token error: " + errorMessage);
-                if (listener != null) {
-                    listener.onFailure(errorMessage);
+                if (callback != null) {
+                    callback.onFailure(errorMessage);
                 }
             }
 
             @Override
             public void onHttpComplete(String response) {
                 if (TextUtils.isEmpty(response)) {
-                    if (listener != null) {
-                        listener.onFailure("empty response");
+                    if (callback != null) {
+                        callback.onFailure("empty response");
                     }
                     return;
                 }
@@ -109,8 +109,8 @@ public class TokenHelper {
                     JSONObject responseJson = new JSONObject(response);
                     int code = responseJson.getInt("returnCode");
                     if (code != TOKEN_RETURN_CODE_SUCCESS) {
-                        if (listener != null) {
-                            listener.onFailure(response);
+                        if (callback != null) {
+                            callback.onFailure(response);
                         }
                         return;
                     }
@@ -118,13 +118,13 @@ public class TokenHelper {
                     String userName = dataJson.getString("id");
                     String password = dataJson.getString("secret");
                     //String expire = dataJson.getString("expire");
-                    if (listener != null) {
-                        listener.onSuccess(userName, password);
+                    if (callback != null) {
+                        callback.onSuccess(userName, password);
                     }
                 } catch (JSONException e) {
                     QLog.d(TAG, "onHttpComplete", e);
-                    if (listener != null) {
-                        listener.onFailure(response);
+                    if (callback != null) {
+                        callback.onFailure(response);
                     }
                 }
             }
@@ -188,7 +188,7 @@ public class TokenHelper {
         }
     }
 
-    public interface ITokenListener {
+    public interface ITokenCallback {
         void onSuccess(String userName, String password);
 
         void onFailure(String message);

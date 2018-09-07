@@ -1,7 +1,8 @@
 package com.tencent.qcloud.iot.device.mqtt;
 
+import android.os.SystemClock;
+
 import com.tencent.qcloud.iot.common.ReconnectHelper;
-import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.device.mqtt.callback.IMqttActionCallback;
 import com.tencent.qcloud.iot.device.mqtt.callback.IMqttConnectStateCallback;
 import com.tencent.qcloud.iot.device.mqtt.callback.IMqttMessageListener;
@@ -16,6 +17,7 @@ import com.tencent.qcloud.iot.device.mqtt.request.BaseMqttRequest;
 import com.tencent.qcloud.iot.device.mqtt.request.MqttPublishRequest;
 import com.tencent.qcloud.iot.device.mqtt.request.MqttSubscribeRequest;
 import com.tencent.qcloud.iot.device.mqtt.request.MqttUnSubscribeRequest;
+import com.tencent.qcloud.iot.log.QLog;
 import com.tencent.qcloud.iot.utils.StringUtil;
 
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
@@ -40,10 +42,10 @@ import javax.net.ssl.SSLSocketFactory;
 
 public class TCIotMqttClient extends AbstractIotMqttClient {
     private static final String TAG = TCIotMqttClient.class.getSimpleName();
+    private static final int CONNECT_TIMEOUT_MS = 40 * 1000;
 
     private TCMqttConfig mTCMqttConfig;
     private MqttAsyncClient mMqttClient;
-    private MqttConnectOptions mMqttConnectOptions;
     private MqttConnectState mConnectState = MqttConnectState.CLOSED;
     private IMqttConnectStateCallback mMqttConnectStateCallback;
     private String mMqttClientId;
@@ -52,7 +54,8 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
     private ConcurrentLinkedQueue<BaseMqttRequest> mMqttRequestQueue;
     private ConcurrentLinkedQueue<MqttSubscribeRequest> mReSubscribeQueue;
     private IMqttMessageListener mMqttMessageListener;
-    private Object mConnectSuccessLock = new Object();
+    private final Object mConnectSuccessLock = new Object();
+    private final Object mConnectToken = new Object();
 
     public TCIotMqttClient(TCMqttConfig config) {
         if (config == null) {
@@ -97,13 +100,15 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
         if (Thread.currentThread() != getHandler().getLooper().getThread()) {
             throw new IllegalStateException("wrong thread");
         }
-        if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_DIRECT) {//直连模式，直接mqtt连接.
+        if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_DIRECT) {
+            //直连模式，直接mqtt连接.
             mqttConnect();
-        } else if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_TOKEN) {//token模式，先请求token，再mqtt连接.
+        } else if (mTCMqttConfig.getConnectionMode() == TCMqttConfig.TCMqttConnectionMode.MODE_TOKEN) {
+            //token模式，先请求token，再mqtt连接.
             TokenHelper tokenHelper = new TokenHelper(mTCMqttConfig.getRegion(), mTCMqttConfig.getProductId(), mTCMqttConfig.getDeviceName(), mTCMqttConfig.getDeviceSecret(),
                     mTCMqttConfig.getTokenScheme());
             final String clientId = mMqttClientId;
-            tokenHelper.getToken(clientId, new TokenHelper.ITokenListener() {
+            tokenHelper.getToken(clientId, new TokenHelper.ITokenCallback() {
                 @Override
                 public void onSuccess(String userName, String password) {
                     mTCMqttConfig.setMqttUserName(userName)
@@ -134,26 +139,38 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
     private void mqttConnect() {
         String mqttBrokerURL = "tcp://" + mTCMqttConfig.getMqttHost() + ":" + TCConstants.MQTT_PORT;
         try {
-            if (mMqttClient == null) {
-                mMqttClient = new MqttAsyncClient(mqttBrokerURL, mMqttClientId, new MemoryPersistence());
-            }
+            mMqttClient = new MqttAsyncClient(mqttBrokerURL, mMqttClientId, new MemoryPersistence());
             //QLog.d(TAG, "url = " + mqttBrokerURL + ", clientid = " + mMqttClientId);
             SSLSocketFactory socketFactory = null;
             if (mTCMqttConfig.getKeyStore() != null) {
                 socketFactory = TCTLSSocketFactory.getSocketFactory(mTCMqttConfig.getKeyStore());
             }
-            mMqttConnectOptions = buildMqttConnectOptions(socketFactory);
             mMqttClient.setCallback(mMqttCallback);
-            mMqttClient.connect(mMqttConnectOptions, null, mMqttConnectActionListener);
+            mMqttClient.connect(buildMqttConnectOptions(socketFactory), null, mMqttConnectActionCallback);
 
+            //有出现一次bug：重连时发送connect包到服务器后，客户端没有收到ack，也就没有启动keep-alive线程，服务器15s没收到心跳包后断开tcp，客户端却没有任何消息抛出。
+            //这种情况下，一直处于connecting状态无法重连。
+            getHandler().postAtTime(new Runnable() {
+                @Override
+                public void run() {
+                    QLog.e(TAG, "connect timeout, timeout = " + CONNECT_TIMEOUT_MS + " ms");
+                    try {
+                        mMqttClient.disconnect(0);
+                    } catch (MqttException e) {
+                        QLog.i(TAG, "connect timeout, then disconnect exception", e);
+                    }
+                    reconnect(1000);
+                }
+            }, mConnectToken, SystemClock.uptimeMillis() + CONNECT_TIMEOUT_MS);
         } catch (MqttException e) {
-            QLog.d(TAG, "connect exception", e);
             switch (e.getReasonCode()) {
                 case MqttException.REASON_CODE_CLIENT_CONNECTED:
+                    QLog.d(TAG, "connect exception", e);
                     setConnectStateAndNotify(MqttConnectState.CONNECTED);
                     break;
                 case MqttException.REASON_CODE_CONNECT_IN_PROGRESS:
-                    setConnectStateAndNotify(MqttConnectState.CONNECTING);
+                    //setConnectStateAndNotify(MqttConnectState.CONNECTING);
+                    QLog.i(TAG, "connect exception", e);
                     break;
                 default:
                     QLog.e(TAG, "connect exception: ", e);
@@ -205,6 +222,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
      */
     @Override
     protected void disconnectInternal() {
+        QLog.i(TAG, "user disconnect");
         if (Thread.currentThread() != getHandler().getLooper().getThread()) {
             throw new IllegalStateException("wrong thread");
         }
@@ -220,7 +238,6 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
                 QLog.d(TAG, "disconnect exception", e);
             }
         }
-        mMqttClient = null;
         setConnectStateAndNotify(MqttConnectState.CLOSED);
     }
 
@@ -292,10 +309,11 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
     /**
      * 监听连接是否成功
      */
-    private IMqttActionListener mMqttConnectActionListener = new IMqttActionListener() {
+    private IMqttActionListener mMqttConnectActionCallback = new IMqttActionListener() {
         @Override
         public void onSuccess(IMqttToken asyncActionToken) {
             QLog.d(TAG, "connect successed, clientId = " + mMqttClientId);
+            getHandler().removeCallbacksAndMessages(mConnectToken);
             mReconnectHelper.reset();
             synchronized (mConnectSuccessLock) {
                 setConnectStateAndNotify(MqttConnectState.CONNECTED);
@@ -307,6 +325,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
         @Override
         public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
             QLog.w(TAG, "connect failed, exception: " + (exception != null ? exception : "") + ", clientId = " + mMqttClientId);
+            getHandler().removeCallbacksAndMessages(mConnectToken);
             onConnectFailed(exception);
         }
     };
@@ -434,7 +453,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
                 .setTopic(topic)
                 .setCallback(callback);
         try {
-            mMqttClient.publish(topic, message, userContext, mPubSubListener);
+            mMqttClient.publish(topic, message, userContext, mPubSubCallback);
         } catch (MqttException e) {
             if (callback != null) {
                 QLog.e(TAG, "mqtt publish failure: " + e);
@@ -449,7 +468,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
                 .setTopic(topic)
                 .setCallback(callback);
         try {
-            mMqttClient.subscribe(topic, qos.asInt(), userContext, mPubSubListener);
+            mMqttClient.subscribe(topic, qos.asInt(), userContext, mPubSubCallback);
         } catch (MqttException e) {
             if (callback != null) {
                 callback.onFailure(e);
@@ -462,7 +481,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
                 .setActionType(MqttActionUserContext.ACTION_TYPE_UNSUBSCRIBE)
                 .setCallback(callback);
         try {
-            mMqttClient.unsubscribe(topic, userContext, mPubSubListener);
+            mMqttClient.unsubscribe(topic, userContext, mPubSubCallback);
         } catch (MqttException e) {
             if (callback != null) {
                 callback.onFailure(e);
@@ -486,7 +505,7 @@ public class TCIotMqttClient extends AbstractIotMqttClient {
     /**
      * 监听发布和订阅等请求的结果
      */
-    private IMqttActionListener mPubSubListener = new IMqttActionListener() {
+    private IMqttActionListener mPubSubCallback = new IMqttActionListener() {
         @Override
         public void onSuccess(IMqttToken asyncActionToken) {
             if (asyncActionToken.getUserContext() != null) {
