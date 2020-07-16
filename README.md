@@ -1,3 +1,5 @@
+# [DEPRECATED] 请移步至新的仓库地址: [iot-device-android](https://github.com/tencentyun/iot-device-android)
+
 
 ## 介绍
 
